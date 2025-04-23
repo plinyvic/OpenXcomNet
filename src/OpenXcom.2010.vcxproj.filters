@@ -2681,6 +2681,7 @@
     <ClInclude Include="Engine\TouchState.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\NullableValue.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Geoscape">
