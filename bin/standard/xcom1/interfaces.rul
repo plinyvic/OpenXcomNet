@@ -2485,3 +2485,16 @@ interfaces:
         color: 218   # blue
       - id: button2
         color: 241   # pink
+  - type: multiplayerMenu
+    backgroundImage: BACK01.SCR
+    elements:
+      - id: palette
+        color: 0     # brown
+      - id: window
+        color: 133   # minty green
+      - id: text
+        color: 138   # yellow
+      - id: button
+        color: 133   # minty green
+      - id: ipAddress
+        color: 239   # bright green

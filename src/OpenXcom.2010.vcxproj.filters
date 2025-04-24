@@ -1214,6 +1214,41 @@
     <ClCompile Include="Engine\TouchState.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="enet\callbacks.c" />
+    <ClCompile Include="enet\compress.c" />
+    <ClCompile Include="enet\host.c" />
+    <ClCompile Include="enet\list.c" />
+    <ClCompile Include="enet\packet.c" />
+    <ClCompile Include="enet\peer.c" />
+    <ClCompile Include="enet\protocol.c" />
+    <ClCompile Include="enet\unix.c" />
+    <ClCompile Include="enet\win32.c" />
+    <ClCompile Include="Network\NetEvent\NetEventBase.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\NetEvent\NetEventConnect.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\NetEvent\NetEventDisconnect.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\NetEvent\NetEventReceive.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\NetHost\NetHost.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\NetworkController\NetworkController.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\PacketFactory\PacketFactory.cpp">
+      <Filter>Network</Filter>
+    </ClCompile>
+    <ClCompile Include="Network\NetHost\XcomNetClient.cpp" />
+    <ClCompile Include="Network\NetHost\XcomNetServer.cpp" />
+    <ClCompile Include="Menu\MultiplayerStartState.cpp">
+      <Filter>Menu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2682,6 +2717,35 @@
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="Engine\NullableValue.h" />
+    <ClInclude Include="Network\NetEvent\NetEventBase.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\NetEvent\NetEventConnect.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\NetEvent\NetEventDisconnect.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\NetEvent\NetEventReceive.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\NetHost\NetHost.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\NetworkController\NetworkController.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\NetworkController\OutboundPacket.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\PacketFactory\PacketFactory.h">
+      <Filter>Network</Filter>
+    </ClInclude>
+    <ClInclude Include="Network\NetHost\XcomNetClient.h" />
+    <ClInclude Include="Network\NetHost\XcomNetServer.h" />
+    <ClInclude Include="Menu\MultiplayerStartState.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Geoscape">
@@ -2746,6 +2810,9 @@
     </Filter>
     <Filter Include="Engine\rapidyaml\c4\yml\std">
       <UniqueIdentifier>{032166e7-3396-4da8-8b9a-79ec1b036488}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Network">
+      <UniqueIdentifier>{17aa1974-4ac6-4737-a5fe-142139d0c87c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

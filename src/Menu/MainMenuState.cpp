@@ -31,6 +31,7 @@
 #include "ListLoadState.h"
 #include "OptionsVideoState.h"
 #include "ModListState.h"
+#include "MultiplayerStartState.h"
 #include "../Engine/Options.h"
 #include "../Engine/FileMap.h"
 #include "../Engine/SDL2Helpers.h"
@@ -68,6 +69,7 @@ MainMenuState::MainMenuState(bool updateCheck)
 
 	// Create objects
 	_window = new Window(this, 256, 160, 32, 20, POPUP_BOTH);
+	buttonMultiplayer = new TextButton(92, 20, 114, 62);
 	_btnNewGame = new TextButton(92, 20, 64, 90);
 	_btnNewBattle = new TextButton(92, 20, 164, 90);
 	_btnLoad = new TextButton(92, 20, 64, 118);
@@ -82,6 +84,7 @@ MainMenuState::MainMenuState(bool updateCheck)
 	setInterface("mainMenu");
 
 	add(_window, "window", "mainMenu");
+	add(buttonMultiplayer, "button", "mainMenu");
 	add(_btnNewGame, "button", "mainMenu");
 	add(_btnNewBattle, "button", "mainMenu");
 	add(_btnLoad, "button", "mainMenu");
@@ -96,6 +99,9 @@ MainMenuState::MainMenuState(bool updateCheck)
 
 	// Set up objects
 	setWindowBackground(_window, "mainMenu");
+
+	buttonMultiplayer->setText("Multiplayer");
+	buttonMultiplayer->onMouseClick((ActionHandler)&MainMenuState::buttonMultiplayerClick);
 
 	_btnNewGame->setText(tr("STR_NEW_GAME"));
 	_btnNewGame->onMouseClick((ActionHandler)&MainMenuState::btnNewGameClick);
@@ -260,6 +266,11 @@ void MainMenuState::init()
 MainMenuState::~MainMenuState()
 {
 
+}
+
+void MainMenuState::buttonMultiplayerClick(Action* action)
+{
+	_game->pushState(new MultiplayerStartState());
 }
 
 /**
