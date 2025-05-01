@@ -124,6 +124,13 @@ int main(int argc, char *argv[])
 	Options::baseXResolution = Options::displayWidth;
 	Options::baseYResolution = Options::displayHeight;
 
+	// initialize enet. this does not start a network connection.
+	if (enet_initialize() != 0)
+	{
+		return EXIT_FAILURE;
+	}
+	atexit(enet_deinitialize);
+
 	game = new Game(title.str());
 	State::setGamePtr(game);
 	game->setState(new StartState);
