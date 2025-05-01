@@ -9,6 +9,7 @@
 #include "../../Network/NetHost/XcomNetServer.h"
 #include "../../Network/NetHost/XcomNetHost.h"
 #include "../../Engine/Logger.h"
+#include "../../Savegame/SavedGame.h"
 
 namespace OpenXcom
 {
@@ -28,20 +29,40 @@ namespace OpenXcom
 
 		add(textWaitForJoin, "text", "multiplayerWaitConnect");
 
-		onClientConnectConnection = _game->GetNetHost()->BindToOnConnectEvent(std::bind(&MultiplayerWaitConnectState::OnClientConnect, this));
+		onClientConnectConnection = _game->GetNetHost()->BindToOnConnectEvent(std::bind(&MultiplayerWaitConnectState::OnConnect, this));
 		Log(LOG_INFO) << "Waiting for player to join.";
 	}
 
-	void MultiplayerWaitConnectState::OnClientConnect()
+	void MultiplayerWaitConnectState::OnConnect()
 	{
 		if (hostType == EHostType::Host)
 		{
+			// for host, send packet containing save to client.
 			Log(LOG_INFO) << "Client connected.";
+			_game->GetNetHost()->
+		}
+		else if (hostType == EHostType::Client)
+		{
+			// for client, wait for host to send battlescape save
+			Log(LOG_INFO) << "Connected to server";
 		}
 		else
 		{
-			Log(LOG_INFO) << "Connected to server";
+			// something has gone horribly wrong
 		}
+	}
+
+	void MultiplayerWaitConnectState::OnReceiveHostSave()
+	{
+		std::string saveString = _game->getSavedGame()->GetFinalSaveString(_game->getMod());
+	}
+
+	void MultiplayerWaitConnectState::OnReceiveClientReady()
+	{
+	}
+
+	void MultiplayerWaitConnectState::OnReceiveStartMatch()
+	{
 	}
 }
 

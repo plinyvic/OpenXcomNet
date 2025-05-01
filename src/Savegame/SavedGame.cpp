@@ -747,165 +747,7 @@ void saveVector(YAML::YamlNodeWriter& writer, const std::vector<T*>& vector, con
  */
 void SavedGame::save(const std::string &filename, Mod *mod) const
 {
-	YAML::YamlRootNodeWriter headerWriter;
-	headerWriter.setAsMap();
-	// Saves the brief game info used in the saves list
-
-	headerWriter.write("name", _name);
-	headerWriter.write("version", OPENXCOM_VERSION_SHORT);
-	headerWriter.write("engine", OPENXCOM_VERSION_ENGINE);
-	std::string git_sha = OPENXCOM_VERSION_GIT;
-	if (!git_sha.empty() && git_sha[0] == '.')
-		git_sha.erase(0, 1);
-	headerWriter.write("build", git_sha);
-	_time->save(headerWriter["time"]);
-	if (_battleGame != 0)
-	{
-		headerWriter.write("mission", _battleGame->getMissionType());
-		headerWriter.write("target", _battleGame->getMissionTarget());
-		headerWriter.write("craftOrBase", _battleGame->getMissionCraftOrBase()).setAsQuotedAndEscaped();
-		headerWriter.write("turn", _battleGame->getTurn());
-	}
-
-	// only save mods that work with the current master
-	std::vector<std::string> modsList;
-	for (const auto* modInfo : Options::getActiveMods())
-		modsList.push_back(modInfo->getId() + " ver: " + modInfo->getVersion());
-	headerWriter.write("mods", modsList);
-
-	if (_ironman)
-		headerWriter.write("ironman", _ironman);
-
-	// Saves the full game data to the save
-	YAML::YamlRootNodeWriter writer(1000000); //1MB starting buffer
-	writer.setAsMap();
-	writer.write("difficulty", _difficulty);
-	writer.write("end", _end);
-	writer.write("monthsPassed", _monthsPassed);
-	writer.write("daysPassed", _daysPassed);
-	writer.write("vehiclesLost", _vehiclesLost);
-	writer.write("graphRegionToggles", _graphRegionToggles);
-	writer.write("graphCountryToggles", _graphCountryToggles);
-	writer.write("graphFinanceToggles", _graphFinanceToggles);
-	writer.write("rng", RNG::getSeed());
-	writer.write("funds", _funds);
-	writer.write("maintenance", _maintenance);
-	writer.write("userNotes", _userNotes);
-	if (Options::oxceGeoscapeDebugLogMaxEntries > 0 && _geoscapeDebugLog.size() > 0)
-	{
-		auto geoDebugLog = writer["geoscapeDebugLog"];
-		geoDebugLog.setAsSeq();
-		size_t lastEntriesToWrite = std::min(_geoscapeDebugLog.size(), (size_t)Options::oxceGeoscapeDebugLogMaxEntries);
-		for (size_t j = _geoscapeDebugLog.size() - lastEntriesToWrite; j < _geoscapeDebugLog.size(); ++j)
-			geoDebugLog.write(_geoscapeDebugLog[j]);
-	}
-
-	writer.write("researchScores", _researchScores);
-	writer.write("incomes", _incomes);
-	writer.write("expenditures", _expenditures);
-	writer.write("warned", _warned);
-	writer.write("togglePersonalLight", _togglePersonalLight);
-	writer.write("toggleNightVision", _toggleNightVision);
-	writer.write("toggleBrightness", _toggleBrightness);
-	writer.write("globeLon", _globeLon);
-	writer.write("globeLat", _globeLat);
-	writer.write("globeZoom", _globeZoom);
-	writer.write("ids", _ids);
-
-	saveVector(writer, _countries, "countries", mod->getScriptGlobal());
-	saveVector(writer, _regions, "regions");
-	saveVector(writer, _bases, "bases");
-	saveVector(writer, _waypoints, "waypoints");
-	saveVector(writer, _missionSites, "missionSites");
-	// Alien bases must be saved before alien missions.
-	saveVector(writer, _alienBases, "alienBases");
-	// Missions must be saved before UFOs, but after alien bases.
-	saveVector(writer, _activeMissions, "alienMissions");
-	// UFOs must be after missions
-	saveVector(writer, _ufos, "ufos", mod->getScriptGlobal(), getMonthsPassed() == -1);
-	saveVector(writer, _geoscapeEvents, "geoscapeEvents");
-	if (!_discovered.empty())
-	{
-		auto discoveredWriter = writer["discovered"];
-		discoveredWriter.setAsSeq();
-		{
-			auto discoveredCopy = _discovered;
-			std::sort(discoveredCopy.begin(), discoveredCopy.end(), [&](const RuleResearch* a, const RuleResearch* b)
-					  { return a->getName().compare(b->getName()) < 0; });
-			for (const auto* research : discoveredCopy)
-			{
-				discoveredWriter.write(research->getName());
-			}
-		}
-	}
-	saveVector(writer, _researchDiary, "researchDiary");
-	writer.write("poppedResearch", _poppedResearch,
-		[](YAML::YamlNodeWriter& w, const RuleResearch* r)
-		{ w.write(r->getName()); });
-	writer.write("generatedEvents", _generatedEvents);
-	writer.write("ufopediaRuleStatus", _ufopediaRuleStatus);
-	writer.write("manufactureRuleStatus", _manufactureRuleStatus);
-	writer.write("researchRuleStatus", _researchRuleStatus);
-	writer.write("monthlyPurchaseLimitLog", _monthlyPurchaseLimitLog);
-	writer.write("hiddenPurchaseItems", _hiddenPurchaseItemsMap);
-	writer.write("customRuleCraftDeployments", _customRuleCraftDeployments);
-	_alienStrategy->save(writer["alienStrategy"]);
-
-	saveVector(writer, _deadSoldiers, "deadSoldiers", mod->getScriptGlobal());
-	for (int j = 0; j < Options::oxceMaxEquipmentLayoutTemplates; ++j)
-	{
-		if (!_globalEquipmentLayout[j].empty())
-			saveVector(writer, _globalEquipmentLayout[j], writer.saveString("globalEquipmentLayout" + std::to_string(j)));
-		if (!_globalEquipmentLayoutName[j].empty())
-			writer.write(writer.saveString("globalEquipmentLayoutName" + std::to_string(j)), _globalEquipmentLayoutName[j]);
-		if (!_globalEquipmentLayoutArmor[j].empty())
-			writer.write(writer.saveString("globalEquipmentLayoutArmor" + std::to_string(j)), _globalEquipmentLayoutArmor[j]);
-	}
-	for (int j = 0; j < MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
-	{
-		if (!_globalCraftLoadout[j]->getContents()->empty())
-			_globalCraftLoadout[j]->save(writer[writer.saveString("globalCraftLoadout" + std::to_string(j))]);
-		if (!_globalCraftLoadoutName[j].empty())
-			writer.write(writer.saveString("globalCraftLoadoutName" + std::to_string(j)), _globalCraftLoadoutName[j]);
-	}
-	if (Options::soldierDiaries)
-		saveVector(writer, _missionStatistics, "missionStatistics");
-
-	if (!_autosales.empty())
-	{
-		auto autoSales = writer["autoSales"];
-		autoSales.setAsSeq();
-		{
-			std::vector<const RuleItem*> autosalesVector(_autosales.begin(), _autosales.end());
-			std::sort(autosalesVector.begin(), autosalesVector.end(), [&](const RuleItem* a, const RuleItem* b)
-				{ return a->getType().compare(b->getType()) < 0; });
-			for (const auto* sale : autosalesVector)
-			{
-				autoSales.write(sale->getType());
-			}
-		}
-	}
-	// snapshot of the user options (just for debugging purposes)
-	auto optionsWriter = writer["options"];
-	optionsWriter.setAsMap();
-	for (const auto& optionInfo : Options::getOptionInfo())
-		optionInfo.save(optionsWriter);
-
-	if (_battleGame)
-		_battleGame->save(writer["battleGame"]);
-	_scriptValues.save(writer.toBase(), mod->getScriptGlobal());
-
-	// concatenate header + separator + body
-	// per yaml standard, "bare documents" in a yaml "stream" can be separated by either a "document end" or "directives end" marker line
-	YAML::YamlString headerString = headerWriter.emit();
-	std::string directivesEndMarker = "---\n";
-	YAML::YamlString bodyString = writer.emit();
-	std::string finalString;
-	finalString.reserve(headerString.yaml.size() + directivesEndMarker.size() + bodyString.yaml.size());
-	finalString += headerString.yaml;
-	finalString	+= directivesEndMarker;
-	finalString += bodyString.yaml;
-
+	std::string finalString = GetFinalSaveString(mod);
 	std::string filepath = Options::getMasterUserFolder() + filename;
 	if (!CrossPlatform::writeFile(filepath, finalString))
 	{
@@ -3393,6 +3235,169 @@ void SavedGame::handlePrimaryResearchSideEffects(const std::vector<const RuleRes
 			decreaseCustomCounter(dec);
 		}
 	}
+}
+
+std::string SavedGame::GetFinalSaveString(Mod* mod) const
+{
+	YAML::YamlRootNodeWriter headerWriter;
+	headerWriter.setAsMap();
+	// Saves the brief game info used in the saves list
+
+	headerWriter.write("name", _name);
+	headerWriter.write("version", OPENXCOM_VERSION_SHORT);
+	headerWriter.write("engine", OPENXCOM_VERSION_ENGINE);
+	std::string git_sha = OPENXCOM_VERSION_GIT;
+	if (!git_sha.empty() && git_sha[0] == '.')
+		git_sha.erase(0, 1);
+	headerWriter.write("build", git_sha);
+	_time->save(headerWriter["time"]);
+	if (_battleGame != 0)
+	{
+		headerWriter.write("mission", _battleGame->getMissionType());
+		headerWriter.write("target", _battleGame->getMissionTarget());
+		headerWriter.write("craftOrBase", _battleGame->getMissionCraftOrBase()).setAsQuotedAndEscaped();
+		headerWriter.write("turn", _battleGame->getTurn());
+	}
+
+	// only save mods that work with the current master
+	std::vector<std::string> modsList;
+	for (const auto* modInfo : Options::getActiveMods())
+		modsList.push_back(modInfo->getId() + " ver: " + modInfo->getVersion());
+	headerWriter.write("mods", modsList);
+
+	if (_ironman)
+		headerWriter.write("ironman", _ironman);
+
+	// Saves the full game data to the save
+	YAML::YamlRootNodeWriter writer(1000000); // 1MB starting buffer
+	writer.setAsMap();
+	writer.write("difficulty", _difficulty);
+	writer.write("end", _end);
+	writer.write("monthsPassed", _monthsPassed);
+	writer.write("daysPassed", _daysPassed);
+	writer.write("vehiclesLost", _vehiclesLost);
+	writer.write("graphRegionToggles", _graphRegionToggles);
+	writer.write("graphCountryToggles", _graphCountryToggles);
+	writer.write("graphFinanceToggles", _graphFinanceToggles);
+	writer.write("rng", RNG::getSeed());
+	writer.write("funds", _funds);
+	writer.write("maintenance", _maintenance);
+	writer.write("userNotes", _userNotes);
+	if (Options::oxceGeoscapeDebugLogMaxEntries > 0 && _geoscapeDebugLog.size() > 0)
+	{
+		auto geoDebugLog = writer["geoscapeDebugLog"];
+		geoDebugLog.setAsSeq();
+		size_t lastEntriesToWrite = std::min(_geoscapeDebugLog.size(), (size_t)Options::oxceGeoscapeDebugLogMaxEntries);
+		for (size_t j = _geoscapeDebugLog.size() - lastEntriesToWrite; j < _geoscapeDebugLog.size(); ++j)
+			geoDebugLog.write(_geoscapeDebugLog[j]);
+	}
+
+	writer.write("researchScores", _researchScores);
+	writer.write("incomes", _incomes);
+	writer.write("expenditures", _expenditures);
+	writer.write("warned", _warned);
+	writer.write("togglePersonalLight", _togglePersonalLight);
+	writer.write("toggleNightVision", _toggleNightVision);
+	writer.write("toggleBrightness", _toggleBrightness);
+	writer.write("globeLon", _globeLon);
+	writer.write("globeLat", _globeLat);
+	writer.write("globeZoom", _globeZoom);
+	writer.write("ids", _ids);
+
+	saveVector(writer, _countries, "countries", mod->getScriptGlobal());
+	saveVector(writer, _regions, "regions");
+	saveVector(writer, _bases, "bases");
+	saveVector(writer, _waypoints, "waypoints");
+	saveVector(writer, _missionSites, "missionSites");
+	// Alien bases must be saved before alien missions.
+	saveVector(writer, _alienBases, "alienBases");
+	// Missions must be saved before UFOs, but after alien bases.
+	saveVector(writer, _activeMissions, "alienMissions");
+	// UFOs must be after missions
+	saveVector(writer, _ufos, "ufos", mod->getScriptGlobal(), getMonthsPassed() == -1);
+	saveVector(writer, _geoscapeEvents, "geoscapeEvents");
+	if (!_discovered.empty())
+	{
+		auto discoveredWriter = writer["discovered"];
+		discoveredWriter.setAsSeq();
+		{
+			auto discoveredCopy = _discovered;
+			std::sort(discoveredCopy.begin(), discoveredCopy.end(), [&](const RuleResearch* a, const RuleResearch* b)
+					  { return a->getName().compare(b->getName()) < 0; });
+			for (const auto* research : discoveredCopy)
+			{
+				discoveredWriter.write(research->getName());
+			}
+		}
+	}
+	saveVector(writer, _researchDiary, "researchDiary");
+	writer.write("poppedResearch", _poppedResearch,
+				 [](YAML::YamlNodeWriter& w, const RuleResearch* r)
+				 { w.write(r->getName()); });
+	writer.write("generatedEvents", _generatedEvents);
+	writer.write("ufopediaRuleStatus", _ufopediaRuleStatus);
+	writer.write("manufactureRuleStatus", _manufactureRuleStatus);
+	writer.write("researchRuleStatus", _researchRuleStatus);
+	writer.write("monthlyPurchaseLimitLog", _monthlyPurchaseLimitLog);
+	writer.write("hiddenPurchaseItems", _hiddenPurchaseItemsMap);
+	writer.write("customRuleCraftDeployments", _customRuleCraftDeployments);
+	_alienStrategy->save(writer["alienStrategy"]);
+
+	saveVector(writer, _deadSoldiers, "deadSoldiers", mod->getScriptGlobal());
+	for (int j = 0; j < Options::oxceMaxEquipmentLayoutTemplates; ++j)
+	{
+		if (!_globalEquipmentLayout[j].empty())
+			saveVector(writer, _globalEquipmentLayout[j], writer.saveString("globalEquipmentLayout" + std::to_string(j)));
+		if (!_globalEquipmentLayoutName[j].empty())
+			writer.write(writer.saveString("globalEquipmentLayoutName" + std::to_string(j)), _globalEquipmentLayoutName[j]);
+		if (!_globalEquipmentLayoutArmor[j].empty())
+			writer.write(writer.saveString("globalEquipmentLayoutArmor" + std::to_string(j)), _globalEquipmentLayoutArmor[j]);
+	}
+	for (int j = 0; j < MAX_CRAFT_LOADOUT_TEMPLATES; ++j)
+	{
+		if (!_globalCraftLoadout[j]->getContents()->empty())
+			_globalCraftLoadout[j]->save(writer[writer.saveString("globalCraftLoadout" + std::to_string(j))]);
+		if (!_globalCraftLoadoutName[j].empty())
+			writer.write(writer.saveString("globalCraftLoadoutName" + std::to_string(j)), _globalCraftLoadoutName[j]);
+	}
+	if (Options::soldierDiaries)
+		saveVector(writer, _missionStatistics, "missionStatistics");
+
+	if (!_autosales.empty())
+	{
+		auto autoSales = writer["autoSales"];
+		autoSales.setAsSeq();
+		{
+			std::vector<const RuleItem*> autosalesVector(_autosales.begin(), _autosales.end());
+			std::sort(autosalesVector.begin(), autosalesVector.end(), [&](const RuleItem* a, const RuleItem* b)
+					  { return a->getType().compare(b->getType()) < 0; });
+			for (const auto* sale : autosalesVector)
+			{
+				autoSales.write(sale->getType());
+			}
+		}
+	}
+	// snapshot of the user options (just for debugging purposes)
+	auto optionsWriter = writer["options"];
+	optionsWriter.setAsMap();
+	for (const auto& optionInfo : Options::getOptionInfo())
+		optionInfo.save(optionsWriter);
+
+	if (_battleGame)
+		_battleGame->save(writer["battleGame"]);
+	_scriptValues.save(writer.toBase(), mod->getScriptGlobal());
+
+	// concatenate header + separator + body
+	// per yaml standard, "bare documents" in a yaml "stream" can be separated by either a "document end" or "directives end" marker line
+	YAML::YamlString headerString = headerWriter.emit();
+	std::string directivesEndMarker = "---\n";
+	YAML::YamlString bodyString = writer.emit();
+	std::string finalString;
+	finalString.reserve(headerString.yaml.size() + directivesEndMarker.size() + bodyString.yaml.size());
+	finalString += headerString.yaml;
+	finalString += directivesEndMarker;
+	finalString += bodyString.yaml;
+	return finalString;
 }
 
 ////////////////////////////////////////////////////////////

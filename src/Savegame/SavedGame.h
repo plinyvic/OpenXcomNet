@@ -527,6 +527,9 @@ public:
 	std::vector<std::string>& getUserNotes() { return _userNotes; }
 	/// Gets the list of geoscape debug log entries.
 	std::vector<std::string>& getGeoscapeDebugLog() { return _geoscapeDebugLog; }
+
+	/// Gets YAML string for this save file.
+	std::string GetFinalSaveString(Mod* mod) const;
 };
 
 }

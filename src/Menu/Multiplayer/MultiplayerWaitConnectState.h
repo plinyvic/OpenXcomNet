@@ -25,11 +25,20 @@ class Window;
 		std::string connectString;
 
 		boost::signals2::scoped_connection onClientConnectConnection;
+		boost::signals2::scoped_connection onReceiveHostSave;
+		boost::signals2::scoped_connection onReceiveClientReady;
+		boost::signals2::scoped_connection onReceiveStartMatch;
 
 	public:
 
 		MultiplayerWaitConnectState(EHostType type, std::string connectString);
 
-		void OnClientConnect();
+		void OnConnect();
+
+		void OnReceiveHostSave();
+
+		void OnReceiveClientReady();
+
+		void OnReceiveStartMatch();
 	};
 }

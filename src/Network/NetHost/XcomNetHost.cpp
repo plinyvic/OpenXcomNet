@@ -2,5 +2,5 @@
 
 void XcomNetHost::HandleReceiveEvent(ENetEvent& event)
 {
-
+	
 }

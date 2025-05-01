@@ -66,9 +66,6 @@ protected:
 
 	virtual void HandleConnectEvent(ENetEvent& event);
 	virtual void HandleDisconnectEvent(ENetEvent& event);
-
-private:
-
-	virtual void HandleReceiveEvent(ENetEvent& event) = 0;
+	virtual void HandleReceiveEvent(ENetEvent& event);
 
 };
