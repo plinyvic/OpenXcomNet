@@ -20,6 +20,7 @@
 #include <list>
 #include <string>
 #include <SDL.h>
+#include "../Network/NetworkController/NetworkController.h"
 
 namespace OpenXcom
 {
