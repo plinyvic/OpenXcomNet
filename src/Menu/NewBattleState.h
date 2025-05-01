@@ -21,6 +21,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include "../Battlescape/BattlescapeGenerator.h"
 
 namespace OpenXcom
 {
@@ -45,10 +46,16 @@ class Craft;
  */
 class NewBattleState : public State
 {
+
+protected:
+
+	// made protected so that derived class can change title
+	Text* _txtTitle;
+
 private:
 	Window *_window;
 	Frame *_frameLeft, *_frameRight;
-	Text *_txtTitle, *_txtMapOptions, *_txtAlienOptions;
+	Text *_txtMapOptions, *_txtAlienOptions;
 	Text *_txtMission, *_txtCraft, *_txtDarkness, *_txtTerrain, *_txtDifficulty, *_txtAlienRace, *_txtAlienTech, *_txtDepth;
 	ComboBox *_cbxMission, *_cbxCraft, *_cbxTerrain, *_cbxDifficulty, *_cbxAlienRace;
 	Slider *_slrDarkness, *_slrAlienTech, *_slrDepth;
@@ -90,7 +97,7 @@ public:
 	/// Initializes a blank savegame.
 	void initSave();
 	/// Handler for clicking the OK button.
-	void btnOkClick(Action *action);
+	virtual void btnOkClick(Action *action);
 	/// Handler for clicking the Cancel button.
 	void btnCancelClick(Action *action);
 	/// Handler for clicking the Randomize button.
@@ -117,6 +124,8 @@ public:
 	/// Handlers for Quick Search.
 	void btnQuickSearchToggle(Action *action);
 	void btnQuickSearchApply(Action *action);
+
+	BattlescapeGenerator MakeBattlescapeGeneratorFromNewBattleState();
 };
 
 }

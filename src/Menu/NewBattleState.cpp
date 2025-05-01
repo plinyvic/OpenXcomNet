@@ -610,90 +610,13 @@ void NewBattleState::btnOkClick(Action *)
 		return;
 	}
 
-	SavedBattleGame *bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage());
-	_game->getSavedGame()->setBattleGame(bgame);
-	bgame->setMissionType(_missionTypes[_cbxMission->getSelected()]);
-	BattlescapeGenerator bgen = BattlescapeGenerator(_game);
-	Base *base = 0;
-
-	bgen.setTerrain(_game->getMod()->getTerrain(_terrainTypes[_cbxTerrain->getSelected()]));
-
-	if (_globeTextureVisible)
-	{
-		int textureId = _globeTextureIDs[_selectedGlobeTexture];
-		auto* globeTexture = _game->getMod()->getGlobe()->getTexture(textureId);
-		bgen.setWorldTexture(nullptr, globeTexture);
-	}
-
-	// base defense
-	if (_missionTypes[_cbxMission->getSelected()] == "STR_BASE_DEFENSE")
-	{
-		base = _craft->getBase();
-		bgen.setBase(base);
-		_craft = 0;
-	}
-	// alien base
-	else if (_game->getMod()->getDeployment(bgame->getMissionType())->isAlienBase())
-	{
-		AlienBase *b = new AlienBase(_game->getMod()->getDeployment(bgame->getMissionType()), -1);
-		b->setId(1);
-		b->setAlienRace(_alienRaces[_cbxAlienRace->getSelected()]);
-		_craft->setDestination(b);
-		bgen.setAlienBase(b);
-		_game->getSavedGame()->getAlienBases()->push_back(b);
-	}
-	// ufo assault
-	else if (_craft && _game->getMod()->getUfo(_missionTypes[_cbxMission->getSelected()]))
-	{
-		Ufo *u = new Ufo(_game->getMod()->getUfo(_missionTypes[_cbxMission->getSelected()]), 1);
-		u->setId(1);
-		_craft->setDestination(u);
-		bgen.setUfo(u);
-		// either ground assault or ufo crash
-		bool ufoLanded = _btnUfoLanded->getVisible() ? _btnUfoLanded->getPressed() : RNG::generate(0, 1) == 1;
-		if (ufoLanded)
-		{
-			u->setStatus(Ufo::LANDED);
-			bgame->setMissionType("STR_UFO_GROUND_ASSAULT");
-		}
-		else
-		{
-			u->setStatus(Ufo::CRASHED);
-			bgame->setMissionType("STR_UFO_CRASH_RECOVERY");
-		}
-		_game->getSavedGame()->getUfos()->push_back(u);
-	}
-	// mission site
-	else
-	{
-		const AlienDeployment *deployment = _game->getMod()->getDeployment(bgame->getMissionType());
-		const RuleAlienMission *mission = _game->getMod()->getAlienMission(_game->getMod()->getAlienMissionList().front()); // doesn't matter
-		MissionSite *m = new MissionSite(mission, deployment, nullptr);
-		m->setId(1);
-		m->setAlienRace(_alienRaces[_cbxAlienRace->getSelected()]);
-		_craft->setDestination(m);
-		bgen.setMissionSite(m);
-		_game->getSavedGame()->getMissionSites()->push_back(m);
-	}
-
-	if (_craft)
-	{
-		_craft->setSpeed(0);
-		bgen.setCraft(_craft);
-	}
-
-	_game->getSavedGame()->setDifficulty((GameDifficulty)_cbxDifficulty->getSelected());
-
-	bgen.setWorldShade(_slrDarkness->getValue());
-	bgen.setAlienRace(_alienRaces[_cbxAlienRace->getSelected()]);
-	bgen.setAlienItemlevel(_slrAlienTech->getValue());
-	bgame->setDepth(_slrDepth->getValue());
+	BattlescapeGenerator bgen = MakeBattlescapeGeneratorFromNewBattleState();
 
 	bgen.run();
 
 	_game->popState();
 	_game->popState();
-	_game->pushState(new BriefingState(_craft, base));
+	_game->pushState(new BriefingState(_craft, _craft->getBase()));
 	_craft = 0;
 }
 
@@ -1130,6 +1053,101 @@ void NewBattleState::btnQuickSearchToggle(Action *action)
 void NewBattleState::btnQuickSearchApply(Action *)
 {
 	fillList(_selectType, _isRightClick);
+}
+
+BattlescapeGenerator NewBattleState::MakeBattlescapeGeneratorFromNewBattleState()
+{
+	//if (_craft)
+	//{
+	//	// just in case somebody manually edited battle.cfg
+	//	_craft->resetCustomDeployment();
+	//}
+	//save();
+	//if (_missionTypes[_cbxMission->getSelected()] != "STR_BASE_DEFENSE" && _craft->getNumTotalUnits() == 0)
+	//{
+	//	return;
+	//}
+
+	SavedBattleGame* bgame = new SavedBattleGame(_game->getMod(), _game->getLanguage());
+	_game->getSavedGame()->setBattleGame(bgame);
+	bgame->setMissionType(_missionTypes[_cbxMission->getSelected()]);
+	BattlescapeGenerator bgen = BattlescapeGenerator(_game);
+	Base* base = 0;
+
+	bgen.setTerrain(_game->getMod()->getTerrain(_terrainTypes[_cbxTerrain->getSelected()]));
+
+	if (_globeTextureVisible)
+	{
+		int textureId = _globeTextureIDs[_selectedGlobeTexture];
+		auto* globeTexture = _game->getMod()->getGlobe()->getTexture(textureId);
+		bgen.setWorldTexture(nullptr, globeTexture);
+	}
+
+	// base defense
+	if (_missionTypes[_cbxMission->getSelected()] == "STR_BASE_DEFENSE")
+	{
+		base = _craft->getBase();
+		bgen.setBase(base);
+		_craft = 0;
+	}
+	// alien base
+	else if (_game->getMod()->getDeployment(bgame->getMissionType())->isAlienBase())
+	{
+		AlienBase* b = new AlienBase(_game->getMod()->getDeployment(bgame->getMissionType()), -1);
+		b->setId(1);
+		b->setAlienRace(_alienRaces[_cbxAlienRace->getSelected()]);
+		_craft->setDestination(b);
+		bgen.setAlienBase(b);
+		_game->getSavedGame()->getAlienBases()->push_back(b);
+	}
+	// ufo assault
+	else if (_craft && _game->getMod()->getUfo(_missionTypes[_cbxMission->getSelected()]))
+	{
+		Ufo* u = new Ufo(_game->getMod()->getUfo(_missionTypes[_cbxMission->getSelected()]), 1);
+		u->setId(1);
+		_craft->setDestination(u);
+		bgen.setUfo(u);
+		// either ground assault or ufo crash
+		bool ufoLanded = _btnUfoLanded->getVisible() ? _btnUfoLanded->getPressed() : RNG::generate(0, 1) == 1;
+		if (ufoLanded)
+		{
+			u->setStatus(Ufo::LANDED);
+			bgame->setMissionType("STR_UFO_GROUND_ASSAULT");
+		}
+		else
+		{
+			u->setStatus(Ufo::CRASHED);
+			bgame->setMissionType("STR_UFO_CRASH_RECOVERY");
+		}
+		_game->getSavedGame()->getUfos()->push_back(u);
+	}
+	// mission site
+	else
+	{
+		const AlienDeployment* deployment = _game->getMod()->getDeployment(bgame->getMissionType());
+		const RuleAlienMission* mission = _game->getMod()->getAlienMission(_game->getMod()->getAlienMissionList().front()); // doesn't matter
+		MissionSite* m = new MissionSite(mission, deployment, nullptr);
+		m->setId(1);
+		m->setAlienRace(_alienRaces[_cbxAlienRace->getSelected()]);
+		_craft->setDestination(m);
+		bgen.setMissionSite(m);
+		_game->getSavedGame()->getMissionSites()->push_back(m);
+	}
+
+	if (_craft)
+	{
+		_craft->setSpeed(0);
+		bgen.setCraft(_craft);
+	}
+
+	_game->getSavedGame()->setDifficulty((GameDifficulty)_cbxDifficulty->getSelected());
+
+	bgen.setWorldShade(_slrDarkness->getValue());
+	bgen.setAlienRace(_alienRaces[_cbxAlienRace->getSelected()]);
+	bgen.setAlienItemlevel(_slrAlienTech->getValue());
+	bgame->setDepth(_slrDepth->getValue());
+
+	return bgen;
 }
 
 }
