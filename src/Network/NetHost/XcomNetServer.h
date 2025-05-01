@@ -1,7 +1,16 @@
 #pragma once
-#include "../../Network/NetHost/NetHost.h"
+#include "../../Network/NetHost/XcomNetHost.h"
 
-class XcomNetServer : public NetHost
+class XcomNetServer : public XcomNetHost
 {
+public:
+
+	XcomNetServer();
+
+private:
+
+	ENetAddress address;
+
+
 
 };

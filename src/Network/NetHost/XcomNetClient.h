@@ -1,7 +1,16 @@
 #pragma once
-#include "../../Network/NetHost/NetHost.h"
+#include "../../Network/NetHost/XcomNetHost.h"
 
-class XcomNetClient : public NetHost
+class XcomNetClient : public XcomNetHost
 {
+public:
 
+	XcomNetClient(std::string ipAddress);
+
+	~XcomNetClient() override;
+
+private:
+
+	ENetAddress address;
+	ENetPeer* server;
 };
