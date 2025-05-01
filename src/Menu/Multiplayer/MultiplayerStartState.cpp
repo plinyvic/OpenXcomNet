@@ -1,9 +1,11 @@
 #include "MultiplayerStartState.h"
-#include "../Interface/Window.h"
-#include "../Interface/TextButton.h"
-#include "../Interface/TextEdit.h"
-#include "../Engine/Game.h"
-#include "../Engine/Options.h"
+#include "../../Interface/Window.h"
+#include "../../Interface/TextButton.h"
+#include "../../Interface/TextEdit.h"
+#include "../../Engine/Game.h"
+#include "../../Engine/Options.h"
+#include "MultiplayerNewBattleState.h"
+#include "MultiplayerWaitConnectState.h"
 
 OpenXcom::MultiplayerStartState::MultiplayerStartState() : ipAddress{"127.0.0.1"}
 {
@@ -44,10 +46,12 @@ OpenXcom::MultiplayerStartState::MultiplayerStartState() : ipAddress{"127.0.0.1"
 
 void OpenXcom::MultiplayerStartState::ButtonHostHandler(Action* action)
 {
+	_game->pushState(new MultiplayerNewBattleState());
 }
 
 void OpenXcom::MultiplayerStartState::ButtonJoinHandler(Action* action)
 {
+	_game->pushState(new MultiplayerWaitConnectState(EHostType::Client, ipAddress));
 }
 
 void OpenXcom::MultiplayerStartState::ButtonCancelHandler(Action* action)

@@ -31,7 +31,7 @@
 #include "ListLoadState.h"
 #include "OptionsVideoState.h"
 #include "ModListState.h"
-#include "MultiplayerStartState.h"
+#include "Multiplayer/MultiplayerStartState.h"
 #include "../Engine/Options.h"
 #include "../Engine/FileMap.h"
 #include "../Engine/SDL2Helpers.h"

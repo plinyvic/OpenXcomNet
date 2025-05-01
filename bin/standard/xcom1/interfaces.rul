@@ -2498,3 +2498,16 @@ interfaces:
         color: 133   # minty green
       - id: ipAddress
         color: 239   # bright green
+  - type: multiplayerWaitConnect
+    backgroundImage: BACK01.SCR
+    elements:
+      - id: palette
+        color: 0     # brown
+      - id: window
+        color: 133   # minty green
+      - id: text
+        color: 138   # yellow
+      - id: button
+        color: 133   # minty green
+      - id: ipAddress
+        color: 239   # bright green
