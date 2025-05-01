@@ -330,8 +330,18 @@ void Game::run()
 		// Process rendering
 		if (runningState != PAUSED)
 		{
+			// Receive inbound network packets and act upon them
+			if (networkController.isInitialized)
+			{
+				networkController.PreThink();
+			}
 			// Process logic
 			_states.back()->think();
+			// Send outbound packets
+			if (networkController.isInitialized)
+			{
+				networkController.PostThink();
+			}
 			_fpsCounter->think();
 			if (Options::FPS > 0 && !(Options::useOpenGL && Options::vSyncForOpenGL))
 			{
@@ -789,6 +799,16 @@ void Game::resetTouchButtonFlags()
 	_rmb = false;
 	_mmb = false;
 	_scrollStep = 1;
+}
+
+void Game::SetNetworkControllerHost(std::unique_ptr<XcomNetHost>&& newHost)
+{
+	networkController.SetHost(std::move(newHost));
+}
+
+const std::unique_ptr<XcomNetHost>& Game::GetNetHost()
+{
+	return networkController.host;
 }
 
 }
