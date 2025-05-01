@@ -1214,22 +1214,7 @@
     <ClCompile Include="Engine\TouchState.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="enet\callbacks.c" />
-    <ClCompile Include="enet\compress.c" />
-    <ClCompile Include="enet\host.c" />
-    <ClCompile Include="enet\list.c" />
-    <ClCompile Include="enet\packet.c" />
-    <ClCompile Include="enet\peer.c" />
-    <ClCompile Include="enet\protocol.c" />
-    <ClCompile Include="enet\unix.c" />
-    <ClCompile Include="enet\win32.c" />
     <ClCompile Include="Network\NetEvent\NetEventBase.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\NetEvent\NetEventConnect.cpp">
-      <Filter>Network</Filter>
-    </ClCompile>
-    <ClCompile Include="Network\NetEvent\NetEventDisconnect.cpp">
       <Filter>Network</Filter>
     </ClCompile>
     <ClCompile Include="Network\NetEvent\NetEventReceive.cpp">
@@ -1246,9 +1231,23 @@
     </ClCompile>
     <ClCompile Include="Network\NetHost\XcomNetClient.cpp" />
     <ClCompile Include="Network\NetHost\XcomNetServer.cpp" />
-    <ClCompile Include="Menu\MultiplayerStartState.cpp">
+    <ClCompile Include="Menu\Multiplayer\MultiplayerStartState.cpp">
       <Filter>Menu</Filter>
     </ClCompile>
+    <ClCompile Include="Menu\Multiplayer\MultiplayerNewBattleState.cpp">
+      <Filter>Menu</Filter>
+    </ClCompile>
+    <ClCompile Include="Menu\Multiplayer\MultiplayerWaitConnectState.cpp" />
+    <ClCompile Include="enet\callbacks.c" />
+    <ClCompile Include="enet\compress.c" />
+    <ClCompile Include="enet\host.c" />
+    <ClCompile Include="enet\list.c" />
+    <ClCompile Include="enet\packet.c" />
+    <ClCompile Include="enet\peer.c" />
+    <ClCompile Include="enet\protocol.c" />
+    <ClCompile Include="enet\unix.c" />
+    <ClCompile Include="enet\win32.c" />
+    <ClCompile Include="Network\NetHost\XcomNetHost.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2720,12 +2719,6 @@
     <ClInclude Include="Network\NetEvent\NetEventBase.h">
       <Filter>Network</Filter>
     </ClInclude>
-    <ClInclude Include="Network\NetEvent\NetEventConnect.h">
-      <Filter>Network</Filter>
-    </ClInclude>
-    <ClInclude Include="Network\NetEvent\NetEventDisconnect.h">
-      <Filter>Network</Filter>
-    </ClInclude>
     <ClInclude Include="Network\NetEvent\NetEventReceive.h">
       <Filter>Network</Filter>
     </ClInclude>
@@ -2743,9 +2736,23 @@
     </ClInclude>
     <ClInclude Include="Network\NetHost\XcomNetClient.h" />
     <ClInclude Include="Network\NetHost\XcomNetServer.h" />
-    <ClInclude Include="Menu\MultiplayerStartState.h">
+    <ClInclude Include="Menu\Multiplayer\MultiplayerStartState.h">
       <Filter>Menu</Filter>
     </ClInclude>
+    <ClInclude Include="Menu\Multiplayer\MultiplayerNewBattleState.h">
+      <Filter>Menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Menu\Multiplayer\MultiplayerWaitConnectState.h" />
+    <ClInclude Include="enet\callbacks.h" />
+    <ClInclude Include="enet\enet.h" />
+    <ClInclude Include="enet\list.h" />
+    <ClInclude Include="enet\protocol.h" />
+    <ClInclude Include="enet\time.h" />
+    <ClInclude Include="enet\types.h" />
+    <ClInclude Include="enet\unix.h" />
+    <ClInclude Include="enet\utility.h" />
+    <ClInclude Include="enet\win32.h" />
+    <ClInclude Include="Network\NetHost\XcomNetHost.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Geoscape">
