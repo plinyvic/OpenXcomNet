@@ -14,7 +14,7 @@ class XcomNetHost : public NetHost
 {
 public:
 
-	virtual ~XcomNetHost() override = default;
+	//virtual ~XcomNetHost() override = default;
 
 protected:
 
@@ -22,14 +22,14 @@ protected:
 
 private:
 
-	boost::signals2::signal<void()> receiveHostSaveSignal;
+	boost::signals2::signal<void(std::string&)> receiveHostSaveSignal;
 	boost::signals2::signal<void()>	receiveClientReadySignal;
 	boost::signals2::signal<void()> receiveStartMatchSignal;
 
 public:
 
 	template <typename TCallable>
-	requires CallableWithSignature<TCallable, void>
+	requires CallableWithSignature<TCallable, void, std::string&>
 	inline boost::signals2::connection BindToReceiveHostSaveEvent(TCallable&& function)
 	{
 		return receiveHostSaveSignal.connect(std::forward<TCallable>(function));

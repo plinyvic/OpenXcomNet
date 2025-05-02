@@ -13,11 +13,10 @@ template <typename TFunction, typename TReturn, typename... TArgs>
 concept CallableWithSignature = std::invocable<TFunction, TArgs...> &&
 								std::is_convertible_v<std::invoke_result_t<TFunction, TArgs...>, TReturn>;
 
-template<typename T>
-struct PacketData;
-
-template <typename TDataType, typename TNetHostType>
-class TNetEventReceive;
+struct ConnectEvent
+{
+	// reserved
+};
 
 class NetHost
 {
@@ -27,45 +26,76 @@ public:
 
 protected:
 
-	std::shared_ptr<std::queue<OutboundPacket>> outboundPacketBuffer;
-
 	ENetAddress address;
 
 private:
 
-	boost::signals2::signal<void(ENetEvent&)> connectEventSignal;
+	boost::signals2::signal<void(ConnectEvent&)> connectEventSignal;
 	boost::signals2::signal<void(ENetEvent&)> disconnectEventSignal;
 
 public:
 
-	virtual ~NetHost();
+	virtual ~NetHost()
+	{
+		if (host != nullptr)
+		{
+			enet_host_destroy(host);
+		}
+	}
 
-	void SetPacketBuffer(const std::shared_ptr<std::queue<OutboundPacket>>& controllerBuffer);
+	void HandleENetEvents()
+	{
+		ENetEvent event;
+		while (enet_host_service(host, &event, 0) > 0)
+		{
+			switch (event.type)
+			{
+			case ENET_EVENT_TYPE_CONNECT:
+			{
+				ConnectEvent connectEvent;
+				HandleConnectEvent(connectEvent);
+				break;
+			}
+			case ENET_EVENT_TYPE_DISCONNECT:
+				HandleDisconnectEvent(event);
+				break;
 
-	void HandleENetEvents();
+			case ENET_EVENT_TYPE_RECEIVE:
+				HandleReceiveEvent(event);
+				break;
+			}
+		}
+	}
 
 	template <typename TCallable>
-	requires CallableWithSignature<TCallable, void, ENetEvent&> inline boost::signals2::connection BindToOnConnectEvent(TCallable&& function)
+	requires CallableWithSignature<TCallable, void, ConnectEvent&>
+	inline boost::signals2::connection BindToOnConnectEvent(TCallable&& function)
 	{
 		return connectEventSignal.connect(std::forward<TCallable>(function));
 	}
 
 	template <typename TCallable>
-	requires CallableWithSignature<TCallable, void, ENetEvent&> inline boost::signals2::connection BindToOnDisconnectEvent(TCallable&& function)
+	requires CallableWithSignature<TCallable, void, ENetEvent&>
+	inline boost::signals2::connection BindToOnDisconnectEvent(TCallable&& function)
 	{
 		return disconnectEventSignal.connect(std::forward<TCallable>(function));
 	}
 
-	/*template <typename TCallable>
-	requires CallableWithSignature<TCallable, void, ENetEvent&> inline boost::signals2::connection BindToOnReceiveEvent(TCallable&& function)
-	{
-		return receiveEventSignal.connect(std::forward<TCallable>(function));
-	}*/
-
 protected:
 
-	virtual void HandleConnectEvent(ENetEvent& event);
-	virtual void HandleDisconnectEvent(ENetEvent& event);
-	virtual void HandleReceiveEvent(ENetEvent& event);
+	virtual void HandleConnectEvent(ConnectEvent& event)
+	{
+		connectEventSignal(event);
+	}
+
+	virtual void HandleDisconnectEvent(ENetEvent& event)
+	{
+		disconnectEventSignal(event);
+	}
+
+	virtual void HandleReceiveEvent(ENetEvent& event)
+	{
+
+	}
 
 };

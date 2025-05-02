@@ -3,39 +3,58 @@
 #include "../../Network/NetEvent/NetEventReceive.h"
 #include <sstream>
 
-template<typename T>
+template <typename THeaderType, typename TMessageType>
 struct PacketData
 {
-public:
-	ENetEventReceiveDataType messageType;
-	T messageData;
+	THeaderType headerType;
+	TMessageType messageData;
 
 	template<class Archive>
 	inline void serialize(Archive& archive)
 	{
-		archive(messageType, messageData);
+		archive(headerType, messageData);
 	}
 
 	PacketData() {}
-	PacketData(ENetEventReceiveDataType inMessageType, const T& inMessageData) : messageType(inMessageType), messageData(inMessageData) {}
+	PacketData(THeaderType inHeader, const TMessageType& inMessageData) : headerType(inHeader), messageData(inMessageData) {}
+	PacketData(THeaderType inHeader, TMessageType&& inMessageData) : headerType{inHeader}, messageData {std::move(inMessageData)} {}
 };
 
 class PacketFactory
 {
 public:
 
-	template<typename T>
-	static ENetPacket* MakePacket(PacketData<T>& data);
+	template <typename THeader>
+	static ENetPacket* MakeENetPacketVoid(THeader header);
 
-	template<typename T>
-	static PacketData<T> GetData(ENetPacket& packet);
+	template<typename THeader, typename TMessage>
+	static ENetPacket* MakeENetPacket(PacketData<THeader, TMessage>& data);
 
-	static ENetEventReceiveDataType GetHeader(ENetPacket& packet);
+	template <typename THeader, typename TMessage>
+	static ENetPacket* MakeENetPacket(THeader header, TMessage& message);
+
+	template<typename THeader, typename TMessage>
+	static PacketData<THeader, TMessage> GetData(ENetPacket& packet);
+
+	template<typename THeader>
+	static THeader GetHeader(ENetPacket& packet);
 
 };
 
-template<typename T>
-inline ENetPacket* PacketFactory::MakePacket(PacketData<T>& data)
+template <typename THeader>
+inline ENetPacket* PacketFactory::MakeENetPacketVoid(THeader header)
+{
+	std::stringstream stream;
+	{
+		cereal::PortableBinaryOutputArchive oarchive(stream);
+		oarchive(header);
+	}
+
+	return enet_packet_create(stream.str().data(), stream.str().size(), ENET_PACKET_FLAG_RELIABLE);
+}
+
+template <typename THeader, typename TMessage>
+inline ENetPacket* PacketFactory::MakeENetPacket(PacketData<THeader, TMessage>& data)
 {
 	std::stringstream stream;
 	{
@@ -46,10 +65,22 @@ inline ENetPacket* PacketFactory::MakePacket(PacketData<T>& data)
 	return enet_packet_create(stream.str().data(), stream.str().size(), ENET_PACKET_FLAG_RELIABLE);
 }
 
-template<typename T>
-inline PacketData<T> PacketFactory::GetData(ENetPacket& packet)
+template <typename THeader, typename TMessage>
+inline ENetPacket* PacketFactory::MakeENetPacket(THeader header, TMessage& message)
 {
-	PacketData<T> data;
+	std::stringstream stream;
+	{
+		cereal::PortableBinaryOutputArchive oarchive(stream);
+		oarchive(header, message);
+	}
+
+	return enet_packet_create(stream.str().data(), stream.str().size(), ENET_PACKET_FLAG_RELIABLE);
+}
+
+template <typename THeader, typename TMessage>
+inline PacketData<THeader, TMessage> PacketFactory::GetData(ENetPacket& packet)
+{
+	PacketData<THeader, TMessage> data;
 	std::stringstream stream = std::stringstream(std::string(reinterpret_cast<char*>(packet.data), packet.dataLength));
 	{
 		cereal::PortableBinaryInputArchive iarchive(stream);
@@ -58,4 +89,17 @@ inline PacketData<T> PacketFactory::GetData(ENetPacket& packet)
 	}
 
 	return data;
+}
+
+template <typename THeader>
+THeader PacketFactory::GetHeader(ENetPacket& packet)
+{
+	THeader dataType;
+	std::stringstream stream = std::stringstream(std::string(reinterpret_cast<char*>(packet.data), packet.dataLength));
+	{
+		cereal::PortableBinaryInputArchive iarchive(stream);
+		iarchive(dataType);
+	}
+
+	return dataType;
 }

@@ -806,6 +806,11 @@ void Game::SetNetworkControllerHost(std::unique_ptr<XcomNetHost>&& newHost)
 	networkController.SetHost(std::move(newHost));
 }
 
+NetworkController<XcomNetHost>& Game::GetNetworkControllerMutable()
+{
+	return networkController;
+}
+
 const std::unique_ptr<XcomNetHost>& Game::GetNetHost()
 {
 	return networkController.host;

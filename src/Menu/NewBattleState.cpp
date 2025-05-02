@@ -397,61 +397,62 @@ void NewBattleState::load(const std::string &filename)
 		try
 		{
 			YAML::YamlRootNodeReader cfgReader(s);
-			_cbxMission->setSelected(std::min(cfgReader["mission"].readVal<size_t>(0), _missionTypes.size() - 1));
-			cbxMissionChange(0);
-			_cbxCraft->setSelected(std::min(cfgReader["craft"].readVal<size_t>(0), _crafts.size() - 1));
-			_slrDarkness->setValue(cfgReader["darkness"].readVal<size_t>(0));
-			_cbxTerrain->setSelected(std::min(cfgReader["terrain"].readVal<size_t>(0), _terrainTypes.size() - 1));
-			cbxTerrainChange(0);
-			{
-				_selectedGlobeTexture = std::min(cfgReader["globeTexture"].readVal<size_t>(0), _globeTextures.size() - 1);
-				_btnGlobeTexture->setText(tr(_globeTextures[_selectedGlobeTexture]));
-			}
-			_cbxAlienRace->setSelected(std::min(cfgReader["alienRace"].readVal<size_t>(0), _alienRaces.size() - 1));
-			_cbxDifficulty->setSelected(cfgReader["difficulty"].readVal<size_t>(0));
-			_slrAlienTech->setValue(cfgReader["alienTech"].readVal<size_t>(0));
+			LoadFromYamlReader(cfgReader);
+			//_cbxMission->setSelected(std::min(cfgReader["mission"].readVal<size_t>(0), _missionTypes.size() - 1));
+			//cbxMissionChange(0);
+			//_cbxCraft->setSelected(std::min(cfgReader["craft"].readVal<size_t>(0), _crafts.size() - 1));
+			//_slrDarkness->setValue(cfgReader["darkness"].readVal<size_t>(0));
+			//_cbxTerrain->setSelected(std::min(cfgReader["terrain"].readVal<size_t>(0), _terrainTypes.size() - 1));
+			//cbxTerrainChange(0);
+			//{
+			//	_selectedGlobeTexture = std::min(cfgReader["globeTexture"].readVal<size_t>(0), _globeTextures.size() - 1);
+			//	_btnGlobeTexture->setText(tr(_globeTextures[_selectedGlobeTexture]));
+			//}
+			//_cbxAlienRace->setSelected(std::min(cfgReader["alienRace"].readVal<size_t>(0), _alienRaces.size() - 1));
+			//_cbxDifficulty->setSelected(cfgReader["difficulty"].readVal<size_t>(0));
+			//_slrAlienTech->setValue(cfgReader["alienTech"].readVal<size_t>(0));
 
-			if (cfgReader["base"])
-			{
-				const Mod *mod = _game->getMod();
-				SavedGame *save = new SavedGame();
+			//if (cfgReader["base"])
+			//{
+			//	const Mod *mod = _game->getMod();
+			//	SavedGame *save = new SavedGame();
 
-				Base *base = new Base(mod);
-				base->load(cfgReader["base"], save, false);
-				save->getBases()->push_back(base);
+			//	Base *base = new Base(mod);
+			//	base->load(cfgReader["base"], save, false);
+			//	save->getBases()->push_back(base);
 
-				// Add research
-				save->makeAllResearchDiscovered(mod);
+			//	// Add research
+			//	save->makeAllResearchDiscovered(mod);
 
-				// Generate items
-				base->getStorageItems()->clear();
-				for (auto& itemType : mod->getItemsList())
-				{
-					RuleItem *rule = _game->getMod()->getItem(itemType);
-					if (rule->getBattleType() != BT_CORPSE && rule->isRecoverable())
-					{
-						base->getStorageItems()->addItem(rule, 1);
-					}
-				}
+			//	// Generate items
+			//	base->getStorageItems()->clear();
+			//	for (auto& itemType : mod->getItemsList())
+			//	{
+			//		RuleItem *rule = _game->getMod()->getItem(itemType);
+			//		if (rule->getBattleType() != BT_CORPSE && rule->isRecoverable())
+			//		{
+			//			base->getStorageItems()->addItem(rule, 1);
+			//		}
+			//	}
 
-				// Fix invalid contents
-				if (base->getCrafts()->empty())
-				{
-					std::string craftType = _crafts[_cbxCraft->getSelected()];
-					_craft = new Craft(_game->getMod()->getCraft(craftType), base, save->getId(craftType));
-					base->getCrafts()->push_back(_craft);
-				}
-				else
-				{
-					_craft = base->getCrafts()->front();
-				}
+			//	// Fix invalid contents
+			//	if (base->getCrafts()->empty())
+			//	{
+			//		std::string craftType = _crafts[_cbxCraft->getSelected()];
+			//		_craft = new Craft(_game->getMod()->getCraft(craftType), base, save->getId(craftType));
+			//		base->getCrafts()->push_back(_craft);
+			//	}
+			//	else
+			//	{
+			//		_craft = base->getCrafts()->front();
+			//	}
 
-				_game->setSavedGame(save);
-			}
-			else
-			{
-				initSave();
-			}
+			//	_game->setSavedGame(save);
+			//}
+			//else
+			//{
+			//	initSave();
+			//}
 		}
 		catch (YAML::Exception &e)
 		{
@@ -478,7 +479,7 @@ void NewBattleState::load(const std::string &filename)
  */
 void NewBattleState::save(const std::string &filename)
 {
-	YAML::YamlRootNodeWriter writer;
+	/*YAML::YamlRootNodeWriter writer;
 	writer.setAsMap();
 	writer.write("mission", _cbxMission->getSelected());
 	writer.write("craft", _cbxCraft->getSelected());
@@ -488,10 +489,13 @@ void NewBattleState::save(const std::string &filename)
 	writer.write("alienRace", _cbxAlienRace->getSelected());
 	writer.write("difficulty", _cbxDifficulty->getSelected());
 	writer.write("alienTech", _slrAlienTech->getValue());
-	_game->getSavedGame()->getBases()->front()->save(writer["base"]);
+	_game->getSavedGame()->getBases()->front()->save(writer["base"]);*/
+
+	std::string saveString = SaveToString();
 
 	std::string filepath = Options::getMasterUserFolder() + filename + ".cfg";
-	if (!CrossPlatform::writeFile(filepath, writer.emit().yaml))
+	//if (!CrossPlatform::writeFile(filepath, writer.emit().yaml))
+	if (!CrossPlatform::writeFile(filepath, saveString))
 	{
 		Log(LOG_WARNING) << "Failed to save " << filepath;
 		return;
@@ -1148,6 +1152,87 @@ BattlescapeGenerator NewBattleState::MakeBattlescapeGeneratorFromNewBattleState(
 	bgame->setDepth(_slrDepth->getValue());
 
 	return bgen;
+}
+
+std::string NewBattleState::SaveToString() const
+{
+	YAML::YamlRootNodeWriter writer;
+	writer.setAsMap();
+	writer.write("mission", _cbxMission->getSelected());
+	writer.write("craft", _cbxCraft->getSelected());
+	writer.write("darkness", _slrDarkness->getValue());
+	writer.write("terrain", _cbxTerrain->getSelected());
+	writer.write("globeTexture", _selectedGlobeTexture);
+	writer.write("alienRace", _cbxAlienRace->getSelected());
+	writer.write("difficulty", _cbxDifficulty->getSelected());
+	writer.write("alienTech", _slrAlienTech->getValue());
+	_game->getSavedGame()->getBases()->front()->save(writer["base"]);
+	return writer.emit().yaml;
+}
+
+void NewBattleState::LoadFromString(std::string& battlescapeString)
+{
+	YAML::YamlRootNodeReader reader = YAML::YamlRootNodeReader(YAML::YamlString(battlescapeString), "bingus");
+	LoadFromYamlReader(reader);
+}
+
+void NewBattleState::LoadFromYamlReader(YAML::YamlRootNodeReader& cfgReader)
+{
+	_cbxMission->setSelected(std::min(cfgReader["mission"].readVal<size_t>(0), _missionTypes.size() - 1));
+	cbxMissionChange(0);
+	_cbxCraft->setSelected(std::min(cfgReader["craft"].readVal<size_t>(0), _crafts.size() - 1));
+	_slrDarkness->setValue(cfgReader["darkness"].readVal<size_t>(0));
+	_cbxTerrain->setSelected(std::min(cfgReader["terrain"].readVal<size_t>(0), _terrainTypes.size() - 1));
+	cbxTerrainChange(0);
+	{
+		_selectedGlobeTexture = std::min(cfgReader["globeTexture"].readVal<size_t>(0), _globeTextures.size() - 1);
+		_btnGlobeTexture->setText(tr(_globeTextures[_selectedGlobeTexture]));
+	}
+	_cbxAlienRace->setSelected(std::min(cfgReader["alienRace"].readVal<size_t>(0), _alienRaces.size() - 1));
+	_cbxDifficulty->setSelected(cfgReader["difficulty"].readVal<size_t>(0));
+	_slrAlienTech->setValue(cfgReader["alienTech"].readVal<size_t>(0));
+
+	if (cfgReader["base"])
+	{
+		const Mod* mod = _game->getMod();
+		SavedGame* save = new SavedGame();
+
+		Base* base = new Base(mod);
+		base->load(cfgReader["base"], save, false);
+		save->getBases()->push_back(base);
+
+		// Add research
+		save->makeAllResearchDiscovered(mod);
+
+		// Generate items
+		base->getStorageItems()->clear();
+		for (auto& itemType : mod->getItemsList())
+		{
+			RuleItem* rule = _game->getMod()->getItem(itemType);
+			if (rule->getBattleType() != BT_CORPSE && rule->isRecoverable())
+			{
+				base->getStorageItems()->addItem(rule, 1);
+			}
+		}
+
+		// Fix invalid contents
+		if (base->getCrafts()->empty())
+		{
+			std::string craftType = _crafts[_cbxCraft->getSelected()];
+			_craft = new Craft(_game->getMod()->getCraft(craftType), base, save->getId(craftType));
+			base->getCrafts()->push_back(_craft);
+		}
+		else
+		{
+			_craft = base->getCrafts()->front();
+		}
+
+		_game->setSavedGame(save);
+	}
+	else
+	{
+		initSave();
+	}
 }
 
 }

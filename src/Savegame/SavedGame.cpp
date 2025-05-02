@@ -381,318 +381,320 @@ void SavedGame::load(const std::string &filename, Mod *mod, Language *lang)
 	std::string filepath = Options::getMasterUserFolder() + filename;
 	YAML::YamlRootNodeReader documents(filepath, false, false);
 
-	// Get brief save info
-	const auto& header = documents[0];
-	_time->load(header["time"]);
-	header.readNode("name", _name, filename);
-	header.tryRead("ironman", _ironman);
+	LoadFromYamlReader(documents, mod, lang, &filepath);
 
-	// Get full save data
-	const auto& reader = documents[1].useIndex();
-	reader.tryRead("difficulty", _difficulty);
-	reader.tryRead("end", _end);
-	if (reader["rng"] && (_ironman || !Options::newSeedOnLoad))
-		RNG::setSeed(reader["rng"].readVal<uint64_t>());
-	reader.tryRead("monthsPassed", _monthsPassed);
-	reader.tryRead("daysPassed", _daysPassed);
-	reader.tryRead("vehiclesLost", _vehiclesLost);
-	reader.tryRead("graphRegionToggles", _graphRegionToggles);
-	reader.tryRead("graphCountryToggles", _graphCountryToggles);
-	reader.tryRead("graphFinanceToggles", _graphFinanceToggles);
-	reader.tryRead("funds", _funds);
-	reader.tryRead("maintenance", _maintenance);
-	reader.tryRead("userNotes", _userNotes);
-	reader.tryRead("geoscapeDebugLog", _geoscapeDebugLog);
-	reader.tryRead("researchScores", _researchScores);
-	reader.tryRead("incomes", _incomes);
-	reader.tryRead("expenditures", _expenditures);
-	reader.tryRead("warned", _warned);
-	reader.tryRead("togglePersonalLight", _togglePersonalLight);
-	reader.tryRead("toggleNightVision", _toggleNightVision);
-	reader.tryRead("toggleBrightness", _toggleBrightness);
-	reader.tryRead("globeLon", _globeLon);
-	reader.tryRead("globeLat", _globeLat);
-	reader.tryRead("globeZoom", _globeZoom);
-	reader.tryRead("ids", _ids);
+	//// Get brief save info
+	//const auto& header = documents[0];
+	//_time->load(header["time"]);
+	//header.readNode("name", _name, filename);
+	//header.tryRead("ironman", _ironman);
 
-	for (const auto& country : reader["countries"].children())
-	{
-		std::string type = country["type"].readVal<std::string>();
-		if (mod->getCountry(type))
-		{
-			Country *c = new Country(mod->getCountry(type), false);
-			c->load(country, mod->getScriptGlobal());
-			_countries.push_back(c);
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load country " << type;
-		}
-	}
+	//// Get full save data
+	//const auto& reader = documents[1].useIndex();
+	//reader.tryRead("difficulty", _difficulty);
+	//reader.tryRead("end", _end);
+	//if (reader["rng"] && (_ironman || !Options::newSeedOnLoad))
+	//	RNG::setSeed(reader["rng"].readVal<uint64_t>());
+	//reader.tryRead("monthsPassed", _monthsPassed);
+	//reader.tryRead("daysPassed", _daysPassed);
+	//reader.tryRead("vehiclesLost", _vehiclesLost);
+	//reader.tryRead("graphRegionToggles", _graphRegionToggles);
+	//reader.tryRead("graphCountryToggles", _graphCountryToggles);
+	//reader.tryRead("graphFinanceToggles", _graphFinanceToggles);
+	//reader.tryRead("funds", _funds);
+	//reader.tryRead("maintenance", _maintenance);
+	//reader.tryRead("userNotes", _userNotes);
+	//reader.tryRead("geoscapeDebugLog", _geoscapeDebugLog);
+	//reader.tryRead("researchScores", _researchScores);
+	//reader.tryRead("incomes", _incomes);
+	//reader.tryRead("expenditures", _expenditures);
+	//reader.tryRead("warned", _warned);
+	//reader.tryRead("togglePersonalLight", _togglePersonalLight);
+	//reader.tryRead("toggleNightVision", _toggleNightVision);
+	//reader.tryRead("toggleBrightness", _toggleBrightness);
+	//reader.tryRead("globeLon", _globeLon);
+	//reader.tryRead("globeLat", _globeLat);
+	//reader.tryRead("globeZoom", _globeZoom);
+	//reader.tryRead("ids", _ids);
 
-	for (const auto& region : reader["regions"].children())
-	{
-		std::string type = region["type"].readVal<std::string>();
-		if (mod->getRegion(type))
-		{
-			Region *r = new Region(mod->getRegion(type));
-			r->load(region);
-			_regions.push_back(r);
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load region " << type;
-		}
-	}
+	//for (const auto& country : reader["countries"].children())
+	//{
+	//	std::string type = country["type"].readVal<std::string>();
+	//	if (mod->getCountry(type))
+	//	{
+	//		Country *c = new Country(mod->getCountry(type), false);
+	//		c->load(country, mod->getScriptGlobal());
+	//		_countries.push_back(c);
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load country " << type;
+	//	}
+	//}
 
-	// Alien bases must be loaded before alien missions
-	for (const auto& alienBase : reader["alienBases"].children())
-	{
-		std::string deployment = alienBase["deployment"].readVal<std::string>("STR_ALIEN_BASE_ASSAULT");
-		if (mod->getDeployment(deployment))
-		{
-			AlienBase *b = new AlienBase(mod->getDeployment(deployment), 0);
-			b->load(alienBase);
-			_alienBases.push_back(b);
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load deployment for alien base " << deployment;
-		}
-	}
+	//for (const auto& region : reader["regions"].children())
+	//{
+	//	std::string type = region["type"].readVal<std::string>();
+	//	if (mod->getRegion(type))
+	//	{
+	//		Region *r = new Region(mod->getRegion(type));
+	//		r->load(region);
+	//		_regions.push_back(r);
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load region " << type;
+	//	}
+	//}
 
-	// Missions must be loaded before UFOs.
-	for (const auto& alienMission : reader["alienMissions"].children())
-	{
-		std::string missionType = alienMission["type"].readVal<std::string>();
-		if (mod->getAlienMission(missionType))
-		{
-			const RuleAlienMission &mRule = *mod->getAlienMission(missionType);
-			AlienMission *mission = new AlienMission(mRule);
-			mission->load(alienMission, *this, mod);
-			_activeMissions.push_back(mission);
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load mission " << missionType;
-		}
-	}
+	//// Alien bases must be loaded before alien missions
+	//for (const auto& alienBase : reader["alienBases"].children())
+	//{
+	//	std::string deployment = alienBase["deployment"].readVal<std::string>("STR_ALIEN_BASE_ASSAULT");
+	//	if (mod->getDeployment(deployment))
+	//	{
+	//		AlienBase *b = new AlienBase(mod->getDeployment(deployment), 0);
+	//		b->load(alienBase);
+	//		_alienBases.push_back(b);
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load deployment for alien base " << deployment;
+	//	}
+	//}
 
-	for (const auto& ufo : reader["ufos"].children())
-	{
-		std::string type = ufo["type"].readVal<std::string>();
-		if (mod->getUfo(type))
-		{
-			Ufo *u = new Ufo(mod->getUfo(type), 0);
-			u->load(ufo, mod->getScriptGlobal(), *mod, *this);
-			_ufos.push_back(u);
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load UFO " << type;
-		}
-	}
+	//// Missions must be loaded before UFOs.
+	//for (const auto& alienMission : reader["alienMissions"].children())
+	//{
+	//	std::string missionType = alienMission["type"].readVal<std::string>();
+	//	if (mod->getAlienMission(missionType))
+	//	{
+	//		const RuleAlienMission &mRule = *mod->getAlienMission(missionType);
+	//		AlienMission *mission = new AlienMission(mRule);
+	//		mission->load(alienMission, *this, mod);
+	//		_activeMissions.push_back(mission);
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load mission " << missionType;
+	//	}
+	//}
 
-	for (const auto& geoEvent : reader["geoscapeEvents"].children())
-	{
-		std::string eventName = geoEvent["name"].readVal<std::string>();
-		if (mod->getEvent(eventName))
-		{
-			const RuleEvent &eventRule = *mod->getEvent(eventName);
-			GeoscapeEvent *event = new GeoscapeEvent(eventRule);
-			event->load(geoEvent);
-			_geoscapeEvents.push_back(event);
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load geoscape event " << eventName;
-		}
-	}
+	//for (const auto& ufo : reader["ufos"].children())
+	//{
+	//	std::string type = ufo["type"].readVal<std::string>();
+	//	if (mod->getUfo(type))
+	//	{
+	//		Ufo *u = new Ufo(mod->getUfo(type), 0);
+	//		u->load(ufo, mod->getScriptGlobal(), *mod, *this);
+	//		_ufos.push_back(u);
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load UFO " << type;
+	//	}
+	//}
 
-	for (const auto& waypoint : reader["waypoints"].children())
-	{
-		Waypoint *w = new Waypoint();
-		w->load(waypoint);
-		_waypoints.push_back(w);
-	}
+	//for (const auto& geoEvent : reader["geoscapeEvents"].children())
+	//{
+	//	std::string eventName = geoEvent["name"].readVal<std::string>();
+	//	if (mod->getEvent(eventName))
+	//	{
+	//		const RuleEvent &eventRule = *mod->getEvent(eventName);
+	//		GeoscapeEvent *event = new GeoscapeEvent(eventRule);
+	//		event->load(geoEvent);
+	//		_geoscapeEvents.push_back(event);
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load geoscape event " << eventName;
+	//	}
+	//}
 
-	// Backwards compatibility
-	for (const auto& terrorSite : reader["terrorSites"].children())
-	{
-		std::string type = "STR_ALIEN_TERROR";
-		std::string deployment = "STR_TERROR_MISSION";
-		if (mod->getAlienMission(type) && mod->getDeployment(deployment))
-		{
-			MissionSite *m = new MissionSite(mod->getAlienMission(type), mod->getDeployment(deployment), nullptr);
-			m->load(terrorSite);
-			_missionSites.push_back(m);
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load mission " << type << " deployment " << deployment;
-		}
-	}
+	//for (const auto& waypoint : reader["waypoints"].children())
+	//{
+	//	Waypoint *w = new Waypoint();
+	//	w->load(waypoint);
+	//	_waypoints.push_back(w);
+	//}
 
-	for (const auto& missionSite : reader["missionSites"].children())
-	{
-		std::string type = missionSite["type"].readVal<std::string>();
-		std::string deployment = missionSite["deployment"].readVal<std::string>("STR_TERROR_MISSION");
-		std::string alienWeaponDeploy = missionSite["missionCustomDeploy"].readVal<std::string>("");
-		if (mod->getAlienMission(type) && mod->getDeployment(deployment))
-		{
-			MissionSite *m = new MissionSite(mod->getAlienMission(type), mod->getDeployment(deployment), mod->getDeployment(alienWeaponDeploy));
-			m->load(missionSite);
-			_missionSites.push_back(m);
-			// link with UFO
-			if (m->getUfoUniqueId() > 0)
-			{
-				Ufo* ufo = nullptr;
-				for (auto* u : _ufos)
-				{
-					if (u->getUniqueId() == m->getUfoUniqueId())
-					{
-						ufo = u;
-						break;
-					}
-				}
-				if (ufo)
-				{
-					m->setUfo(ufo);
-				}
-			}
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load mission " << type << " deployment " << deployment;
-		}
-	}
+	//// Backwards compatibility
+	//for (const auto& terrorSite : reader["terrorSites"].children())
+	//{
+	//	std::string type = "STR_ALIEN_TERROR";
+	//	std::string deployment = "STR_TERROR_MISSION";
+	//	if (mod->getAlienMission(type) && mod->getDeployment(deployment))
+	//	{
+	//		MissionSite *m = new MissionSite(mod->getAlienMission(type), mod->getDeployment(deployment), nullptr);
+	//		m->load(terrorSite);
+	//		_missionSites.push_back(m);
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load mission " << type << " deployment " << deployment;
+	//	}
+	//}
 
-	// Discovered Techs Should be loaded before Bases (e.g. for PSI evaluation)
-	for (const auto& discovery : reader["discovered"].children())
-	{
-		std::string research = discovery.readVal<std::string>();
-		if (RuleResearch* researchRule = mod->getResearch(research))
-		{
-			_discovered.push_back(researchRule);
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load research " << research;
-		}
-	}
-	sortReserchVector(_discovered);
+	//for (const auto& missionSite : reader["missionSites"].children())
+	//{
+	//	std::string type = missionSite["type"].readVal<std::string>();
+	//	std::string deployment = missionSite["deployment"].readVal<std::string>("STR_TERROR_MISSION");
+	//	std::string alienWeaponDeploy = missionSite["missionCustomDeploy"].readVal<std::string>("");
+	//	if (mod->getAlienMission(type) && mod->getDeployment(deployment))
+	//	{
+	//		MissionSite *m = new MissionSite(mod->getAlienMission(type), mod->getDeployment(deployment), mod->getDeployment(alienWeaponDeploy));
+	//		m->load(missionSite);
+	//		_missionSites.push_back(m);
+	//		// link with UFO
+	//		if (m->getUfoUniqueId() > 0)
+	//		{
+	//			Ufo* ufo = nullptr;
+	//			for (auto* u : _ufos)
+	//			{
+	//				if (u->getUniqueId() == m->getUfoUniqueId())
+	//				{
+	//					ufo = u;
+	//					break;
+	//				}
+	//			}
+	//			if (ufo)
+	//			{
+	//				m->setUfo(ufo);
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load mission " << type << " deployment " << deployment;
+	//	}
+	//}
 
-	// Research Diary
-	{
-		std::string name;
-		for (const auto& researchDiaryEntryReader : reader["researchDiary"].children())
-		{
-			researchDiaryEntryReader.readNode("name", name);
-			// only valid topics are loaded
-			if (RuleResearch* research = mod->getResearch(name, false))
-			{
-				ResearchDiaryEntry* entry = new ResearchDiaryEntry(research);
-				entry->load(researchDiaryEntryReader, mod);
-				_researchDiary.push_back(entry);
-			}
-		}
-	}
+	//// Discovered Techs Should be loaded before Bases (e.g. for PSI evaluation)
+	//for (const auto& discovery : reader["discovered"].children())
+	//{
+	//	std::string research = discovery.readVal<std::string>();
+	//	if (RuleResearch* researchRule = mod->getResearch(research))
+	//	{
+	//		_discovered.push_back(researchRule);
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load research " << research;
+	//	}
+	//}
+	//sortReserchVector(_discovered);
 
-	reader.tryRead("generatedEvents", _generatedEvents);
-	loadUfopediaRuleStatus(reader["ufopediaRuleStatus"]);
-	reader.tryRead("manufactureRuleStatus", _manufactureRuleStatus);
-	reader.tryRead("researchRuleStatus", _researchRuleStatus);
-	reader.tryRead("monthlyPurchaseLimitLog", _monthlyPurchaseLimitLog);
-	reader.tryRead("hiddenPurchaseItems", _hiddenPurchaseItemsMap);
-	reader.tryRead("customRuleCraftDeployments", _customRuleCraftDeployments);
+	//// Research Diary
+	//{
+	//	std::string name;
+	//	for (const auto& researchDiaryEntryReader : reader["researchDiary"].children())
+	//	{
+	//		researchDiaryEntryReader.readNode("name", name);
+	//		// only valid topics are loaded
+	//		if (RuleResearch* research = mod->getResearch(name, false))
+	//		{
+	//			ResearchDiaryEntry* entry = new ResearchDiaryEntry(research);
+	//			entry->load(researchDiaryEntryReader, mod);
+	//			_researchDiary.push_back(entry);
+	//		}
+	//	}
+	//}
 
-	for (const auto& base : reader["bases"].children())
-	{
-		Base *b = new Base(mod);
-		b->load(base, this, false);
-		_bases.push_back(b);
-	}
+	//reader.tryRead("generatedEvents", _generatedEvents);
+	//loadUfopediaRuleStatus(reader["ufopediaRuleStatus"]);
+	//reader.tryRead("manufactureRuleStatus", _manufactureRuleStatus);
+	//reader.tryRead("researchRuleStatus", _researchRuleStatus);
+	//reader.tryRead("monthlyPurchaseLimitLog", _monthlyPurchaseLimitLog);
+	//reader.tryRead("hiddenPurchaseItems", _hiddenPurchaseItemsMap);
+	//reader.tryRead("customRuleCraftDeployments", _customRuleCraftDeployments);
 
-	// Finish loading crafts after bases (more specifically after all crafts) are loaded, because of references between crafts (i.e. friendly escorts)
-	for (size_t i = 0; i < _bases.size(); ++i)
-		_bases[i]->finishLoading(reader["bases"][i], this);
+	//for (const auto& base : reader["bases"].children())
+	//{
+	//	Base *b = new Base(mod);
+	//	b->load(base, this, false);
+	//	_bases.push_back(b);
+	//}
 
-	// Finish loading UFOs after all craft and all other UFOs are loaded
-	for (const auto& ufoReader : reader["ufos"].children())
-	{
-		int uniqueUfoId = ufoReader["uniqueId"].readVal(0);
-		if (uniqueUfoId > 0)
-		{
-			Ufo *ufo = 0;
-			for (auto* u : _ufos)
-			{
-				if (u->getUniqueId() == uniqueUfoId)
-				{
-					ufo = u;
-					break;
-				}
-			}
-			if (ufo)
-			{
-				ufo->finishLoading(ufoReader, *this);
-			}
-		}
-	}
+	//// Finish loading crafts after bases (more specifically after all crafts) are loaded, because of references between crafts (i.e. friendly escorts)
+	//for (size_t i = 0; i < _bases.size(); ++i)
+	//	_bases[i]->finishLoading(reader["bases"][i], this);
 
-	for (const auto& popped : reader["poppedResearch"].children())
-	{
-		std::string id = popped.readVal<std::string>();
-		if (mod->getResearch(id))
-		{
-			_poppedResearch.push_back(mod->getResearch(id));
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load popped research " << id;
-		}
-	}
-	_alienStrategy->load(reader["alienStrategy"], mod);
+	//// Finish loading UFOs after all craft and all other UFOs are loaded
+	//for (const auto& ufoReader : reader["ufos"].children())
+	//{
+	//	int uniqueUfoId = ufoReader["uniqueId"].readVal(0);
+	//	if (uniqueUfoId > 0)
+	//	{
+	//		Ufo *ufo = 0;
+	//		for (auto* u : _ufos)
+	//		{
+	//			if (u->getUniqueId() == uniqueUfoId)
+	//			{
+	//				ufo = u;
+	//				break;
+	//			}
+	//		}
+	//		if (ufo)
+	//		{
+	//			ufo->finishLoading(ufoReader, *this);
+	//		}
+	//	}
+	//}
 
-	for (const auto& weHardlyKnewYe : reader["deadSoldiers"].children())
-	{
-		std::string type = weHardlyKnewYe["type"].readVal(mod->getSoldiersList().front());
-		if (mod->getSoldier(type))
-		{
-			Soldier *soldier = new Soldier(mod->getSoldier(type), nullptr, 0 /*nationality*/);
-			soldier->load(weHardlyKnewYe, mod, this, mod->getScriptGlobal());
-			_deadSoldiers.push_back(soldier);
-		}
-		else
-		{
-			Log(LOG_ERROR) << "Failed to load dead soldier " << type;
-		}
-	}
+	//for (const auto& popped : reader["poppedResearch"].children())
+	//{
+	//	std::string id = popped.readVal<std::string>();
+	//	if (mod->getResearch(id))
+	//	{
+	//		_poppedResearch.push_back(mod->getResearch(id));
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load popped research " << id;
+	//	}
+	//}
+	//_alienStrategy->load(reader["alienStrategy"], mod);
 
-	loadTemplates(reader, mod);
+	//for (const auto& weHardlyKnewYe : reader["deadSoldiers"].children())
+	//{
+	//	std::string type = weHardlyKnewYe["type"].readVal(mod->getSoldiersList().front());
+	//	if (mod->getSoldier(type))
+	//	{
+	//		Soldier *soldier = new Soldier(mod->getSoldier(type), nullptr, 0 /*nationality*/);
+	//		soldier->load(weHardlyKnewYe, mod, this, mod->getScriptGlobal());
+	//		_deadSoldiers.push_back(soldier);
+	//	}
+	//	else
+	//	{
+	//		Log(LOG_ERROR) << "Failed to load dead soldier " << type;
+	//	}
+	//}
 
-	for (const auto& missionStats : reader["missionStatistics"].children())
-	{
-		MissionStatistics *ms = new MissionStatistics();
-		ms->load(missionStats);
-		_missionStatistics.push_back(ms);
-	}
+	//loadTemplates(reader, mod);
 
-	for (const auto& autoSale : reader["autoSales"].children())
-	{
-		std::string itype = autoSale.readVal<std::string>();
-		if (mod->getItem(itype))
-		{
-			_autosales.insert(mod->getItem(itype));
-		}
-	}
+	//for (const auto& missionStats : reader["missionStatistics"].children())
+	//{
+	//	MissionStatistics *ms = new MissionStatistics();
+	//	ms->load(missionStats);
+	//	_missionStatistics.push_back(ms);
+	//}
 
-	if (const YAML::YamlNodeReader& battle = reader["battleGame"])
-	{
-		_battleGame = new SavedBattleGame(mod, lang);
-		_battleGame->load(battle, mod, this);
-	}
+	//for (const auto& autoSale : reader["autoSales"].children())
+	//{
+	//	std::string itype = autoSale.readVal<std::string>();
+	//	if (mod->getItem(itype))
+	//	{
+	//		_autosales.insert(mod->getItem(itype));
+	//	}
+	//}
 
-	_scriptValues.load(reader, mod->getScriptGlobal());
+	//if (const YAML::YamlNodeReader& battle = reader["battleGame"])
+	//{
+	//	_battleGame = new SavedBattleGame(mod, lang);
+	//	_battleGame->load(battle, mod, this);
+	//}
+
+	//_scriptValues.load(reader, mod->getScriptGlobal());
 }
 
 void SavedGame::loadTemplates(const YAML::YamlNodeReader& reader, const Mod* mod)
@@ -3398,6 +3400,333 @@ std::string SavedGame::GetFinalSaveString(Mod* mod) const
 	finalString += directivesEndMarker;
 	finalString += bodyString.yaml;
 	return finalString;
+}
+
+void SavedGame::LoadFromString(std::string& saveString, Mod* mod, Language* lang)
+{
+	YAML::YamlString yamlstring = YAML::YamlString(saveString);
+	YAML::YamlRootNodeReader reader = YAML::YamlRootNodeReader(yamlstring, "bingus");
+
+	LoadFromYamlReader(reader, mod, lang);
+}
+
+void SavedGame::LoadFromYamlReader(YAML::YamlRootNodeReader& documents, Mod* mod, Language* lang, std::string* filename)
+{
+	// Get brief save info
+	if (filename != nullptr)
+	{
+		const auto& header = documents[0];
+		_time->load(header["time"]);
+		header.readNode("name", _name, *filename);
+		header.tryRead("ironman", _ironman);
+	}
+	
+	// Get full save data
+	const auto& reader = documents[1].useIndex();
+	reader.tryRead("difficulty", _difficulty);
+	reader.tryRead("end", _end);
+	if (reader["rng"] && (_ironman || !Options::newSeedOnLoad))
+		RNG::setSeed(reader["rng"].readVal<uint64_t>());
+	reader.tryRead("monthsPassed", _monthsPassed);
+	reader.tryRead("daysPassed", _daysPassed);
+	reader.tryRead("vehiclesLost", _vehiclesLost);
+	reader.tryRead("graphRegionToggles", _graphRegionToggles);
+	reader.tryRead("graphCountryToggles", _graphCountryToggles);
+	reader.tryRead("graphFinanceToggles", _graphFinanceToggles);
+	reader.tryRead("funds", _funds);
+	reader.tryRead("maintenance", _maintenance);
+	reader.tryRead("userNotes", _userNotes);
+	reader.tryRead("geoscapeDebugLog", _geoscapeDebugLog);
+	reader.tryRead("researchScores", _researchScores);
+	reader.tryRead("incomes", _incomes);
+	reader.tryRead("expenditures", _expenditures);
+	reader.tryRead("warned", _warned);
+	reader.tryRead("togglePersonalLight", _togglePersonalLight);
+	reader.tryRead("toggleNightVision", _toggleNightVision);
+	reader.tryRead("toggleBrightness", _toggleBrightness);
+	reader.tryRead("globeLon", _globeLon);
+	reader.tryRead("globeLat", _globeLat);
+	reader.tryRead("globeZoom", _globeZoom);
+	reader.tryRead("ids", _ids);
+
+	for (const auto& country : reader["countries"].children())
+	{
+		std::string type = country["type"].readVal<std::string>();
+		if (mod->getCountry(type))
+		{
+			Country* c = new Country(mod->getCountry(type), false);
+			c->load(country, mod->getScriptGlobal());
+			_countries.push_back(c);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load country " << type;
+		}
+	}
+
+	for (const auto& region : reader["regions"].children())
+	{
+		std::string type = region["type"].readVal<std::string>();
+		if (mod->getRegion(type))
+		{
+			Region* r = new Region(mod->getRegion(type));
+			r->load(region);
+			_regions.push_back(r);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load region " << type;
+		}
+	}
+
+	// Alien bases must be loaded before alien missions
+	for (const auto& alienBase : reader["alienBases"].children())
+	{
+		std::string deployment = alienBase["deployment"].readVal<std::string>("STR_ALIEN_BASE_ASSAULT");
+		if (mod->getDeployment(deployment))
+		{
+			AlienBase* b = new AlienBase(mod->getDeployment(deployment), 0);
+			b->load(alienBase);
+			_alienBases.push_back(b);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load deployment for alien base " << deployment;
+		}
+	}
+
+	// Missions must be loaded before UFOs.
+	for (const auto& alienMission : reader["alienMissions"].children())
+	{
+		std::string missionType = alienMission["type"].readVal<std::string>();
+		if (mod->getAlienMission(missionType))
+		{
+			const RuleAlienMission& mRule = *mod->getAlienMission(missionType);
+			AlienMission* mission = new AlienMission(mRule);
+			mission->load(alienMission, *this, mod);
+			_activeMissions.push_back(mission);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load mission " << missionType;
+		}
+	}
+
+	for (const auto& ufo : reader["ufos"].children())
+	{
+		std::string type = ufo["type"].readVal<std::string>();
+		if (mod->getUfo(type))
+		{
+			Ufo* u = new Ufo(mod->getUfo(type), 0);
+			u->load(ufo, mod->getScriptGlobal(), *mod, *this);
+			_ufos.push_back(u);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load UFO " << type;
+		}
+	}
+
+	for (const auto& geoEvent : reader["geoscapeEvents"].children())
+	{
+		std::string eventName = geoEvent["name"].readVal<std::string>();
+		if (mod->getEvent(eventName))
+		{
+			const RuleEvent& eventRule = *mod->getEvent(eventName);
+			GeoscapeEvent* event = new GeoscapeEvent(eventRule);
+			event->load(geoEvent);
+			_geoscapeEvents.push_back(event);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load geoscape event " << eventName;
+		}
+	}
+
+	for (const auto& waypoint : reader["waypoints"].children())
+	{
+		Waypoint* w = new Waypoint();
+		w->load(waypoint);
+		_waypoints.push_back(w);
+	}
+
+	// Backwards compatibility
+	for (const auto& terrorSite : reader["terrorSites"].children())
+	{
+		std::string type = "STR_ALIEN_TERROR";
+		std::string deployment = "STR_TERROR_MISSION";
+		if (mod->getAlienMission(type) && mod->getDeployment(deployment))
+		{
+			MissionSite* m = new MissionSite(mod->getAlienMission(type), mod->getDeployment(deployment), nullptr);
+			m->load(terrorSite);
+			_missionSites.push_back(m);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load mission " << type << " deployment " << deployment;
+		}
+	}
+
+	for (const auto& missionSite : reader["missionSites"].children())
+	{
+		std::string type = missionSite["type"].readVal<std::string>();
+		std::string deployment = missionSite["deployment"].readVal<std::string>("STR_TERROR_MISSION");
+		std::string alienWeaponDeploy = missionSite["missionCustomDeploy"].readVal<std::string>("");
+		if (mod->getAlienMission(type) && mod->getDeployment(deployment))
+		{
+			MissionSite* m = new MissionSite(mod->getAlienMission(type), mod->getDeployment(deployment), mod->getDeployment(alienWeaponDeploy));
+			m->load(missionSite);
+			_missionSites.push_back(m);
+			// link with UFO
+			if (m->getUfoUniqueId() > 0)
+			{
+				Ufo* ufo = nullptr;
+				for (auto* u : _ufos)
+				{
+					if (u->getUniqueId() == m->getUfoUniqueId())
+					{
+						ufo = u;
+						break;
+					}
+				}
+				if (ufo)
+				{
+					m->setUfo(ufo);
+				}
+			}
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load mission " << type << " deployment " << deployment;
+		}
+	}
+
+	// Discovered Techs Should be loaded before Bases (e.g. for PSI evaluation)
+	for (const auto& discovery : reader["discovered"].children())
+	{
+		std::string research = discovery.readVal<std::string>();
+		if (RuleResearch* researchRule = mod->getResearch(research))
+		{
+			_discovered.push_back(researchRule);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load research " << research;
+		}
+	}
+	sortReserchVector(_discovered);
+
+	// Research Diary
+	{
+		std::string name;
+		for (const auto& researchDiaryEntryReader : reader["researchDiary"].children())
+		{
+			researchDiaryEntryReader.readNode("name", name);
+			// only valid topics are loaded
+			if (RuleResearch* research = mod->getResearch(name, false))
+			{
+				ResearchDiaryEntry* entry = new ResearchDiaryEntry(research);
+				entry->load(researchDiaryEntryReader, mod);
+				_researchDiary.push_back(entry);
+			}
+		}
+	}
+
+	reader.tryRead("generatedEvents", _generatedEvents);
+	loadUfopediaRuleStatus(reader["ufopediaRuleStatus"]);
+	reader.tryRead("manufactureRuleStatus", _manufactureRuleStatus);
+	reader.tryRead("researchRuleStatus", _researchRuleStatus);
+	reader.tryRead("monthlyPurchaseLimitLog", _monthlyPurchaseLimitLog);
+	reader.tryRead("hiddenPurchaseItems", _hiddenPurchaseItemsMap);
+	reader.tryRead("customRuleCraftDeployments", _customRuleCraftDeployments);
+
+	for (const auto& base : reader["bases"].children())
+	{
+		Base* b = new Base(mod);
+		b->load(base, this, false);
+		_bases.push_back(b);
+	}
+
+	// Finish loading crafts after bases (more specifically after all crafts) are loaded, because of references between crafts (i.e. friendly escorts)
+	for (size_t i = 0; i < _bases.size(); ++i)
+		_bases[i]->finishLoading(reader["bases"][i], this);
+
+	// Finish loading UFOs after all craft and all other UFOs are loaded
+	for (const auto& ufoReader : reader["ufos"].children())
+	{
+		int uniqueUfoId = ufoReader["uniqueId"].readVal(0);
+		if (uniqueUfoId > 0)
+		{
+			Ufo* ufo = 0;
+			for (auto* u : _ufos)
+			{
+				if (u->getUniqueId() == uniqueUfoId)
+				{
+					ufo = u;
+					break;
+				}
+			}
+			if (ufo)
+			{
+				ufo->finishLoading(ufoReader, *this);
+			}
+		}
+	}
+
+	for (const auto& popped : reader["poppedResearch"].children())
+	{
+		std::string id = popped.readVal<std::string>();
+		if (mod->getResearch(id))
+		{
+			_poppedResearch.push_back(mod->getResearch(id));
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load popped research " << id;
+		}
+	}
+	_alienStrategy->load(reader["alienStrategy"], mod);
+
+	for (const auto& weHardlyKnewYe : reader["deadSoldiers"].children())
+	{
+		std::string type = weHardlyKnewYe["type"].readVal(mod->getSoldiersList().front());
+		if (mod->getSoldier(type))
+		{
+			Soldier* soldier = new Soldier(mod->getSoldier(type), nullptr, 0 /*nationality*/);
+			soldier->load(weHardlyKnewYe, mod, this, mod->getScriptGlobal());
+			_deadSoldiers.push_back(soldier);
+		}
+		else
+		{
+			Log(LOG_ERROR) << "Failed to load dead soldier " << type;
+		}
+	}
+
+	loadTemplates(reader, mod);
+
+	for (const auto& missionStats : reader["missionStatistics"].children())
+	{
+		MissionStatistics* ms = new MissionStatistics();
+		ms->load(missionStats);
+		_missionStatistics.push_back(ms);
+	}
+
+	for (const auto& autoSale : reader["autoSales"].children())
+	{
+		std::string itype = autoSale.readVal<std::string>();
+		if (mod->getItem(itype))
+		{
+			_autosales.insert(mod->getItem(itype));
+		}
+	}
+
+	if (const YAML::YamlNodeReader& battle = reader["battleGame"])
+	{
+		_battleGame = new SavedBattleGame(mod, lang);
+		_battleGame->load(battle, mod, this);
+	}
+
+	_scriptValues.load(reader, mod->getScriptGlobal());
 }
 
 ////////////////////////////////////////////////////////////

@@ -14,18 +14,16 @@ namespace OpenXcom
 
 	void MultiplayerNewBattleState::btnOkClick(Action* action)
 	{
+		save();
 		BattlescapeGenerator bgen = MakeBattlescapeGeneratorFromNewBattleState();
 
 		bgen.run();
 
-		_game->popState();
-		_game->popState();
-		_game->pushState(new MultiplayerWaitConnectState(EHostType::Host, "127.0.0.1"));
+		std::string battleStateString = SaveToString();
 
-		/*_game->popState();
 		_game->popState();
-		_game->pushState(new MultiplayerWaitConnectState());
-		_craft = 0;*/
+		_game->popState();
+		_game->pushState(new MultiplayerWaitConnectState(EHostType::Host, "127.0.0.1", battleStateString));
 	}
 }
 

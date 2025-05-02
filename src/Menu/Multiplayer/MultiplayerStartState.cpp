@@ -51,6 +51,7 @@ void OpenXcom::MultiplayerStartState::ButtonHostHandler(Action* action)
 
 void OpenXcom::MultiplayerStartState::ButtonJoinHandler(Action* action)
 {
+	_game->popState();
 	_game->pushState(new MultiplayerWaitConnectState(EHostType::Client, ipAddress));
 }
 

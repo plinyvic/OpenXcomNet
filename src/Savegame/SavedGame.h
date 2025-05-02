@@ -530,6 +530,11 @@ public:
 
 	/// Gets YAML string for this save file.
 	std::string GetFinalSaveString(Mod* mod) const;
+	void LoadFromString(std::string& saveString, Mod* mod, Language* lang);
+
+private:
+
+	void LoadFromYamlReader(YAML::YamlRootNodeReader& documents, Mod* mod, Language* lang, std::string* filename = nullptr);
 };
 
 }

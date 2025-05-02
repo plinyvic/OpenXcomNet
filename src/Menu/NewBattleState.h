@@ -126,6 +126,10 @@ public:
 	void btnQuickSearchApply(Action *action);
 
 	BattlescapeGenerator MakeBattlescapeGeneratorFromNewBattleState();
+
+	std::string SaveToString() const;
+	void LoadFromString(std::string& battlescapeString);
+	void LoadFromYamlReader(YAML::YamlRootNodeReader& cfgReader);
 };
 
 }

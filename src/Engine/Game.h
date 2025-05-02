@@ -175,6 +175,8 @@ public:
 
 	void SetNetworkControllerHost(std::unique_ptr<XcomNetHost>&& newHost);
 
+	NetworkController<XcomNetHost>& GetNetworkControllerMutable();
+
 	const std::unique_ptr<XcomNetHost>& GetNetHost();
 };
 
