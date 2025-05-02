@@ -3,7 +3,7 @@
 #include "../../Network/NetEvent/NetEventReceive.h"
 #include <sstream>
 
-template <typename THeaderType, typename TMessageType>
+template <typename THeaderType, typename TMessageType, typename... TMessageInitArgs>
 struct PacketData
 {
 	THeaderType headerType;
@@ -15,7 +15,7 @@ struct PacketData
 		archive(headerType, messageData);
 	}
 
-	PacketData() {}
+	PacketData(TMessageInitArgs... args) : messageData{args...} {}
 	PacketData(THeaderType inHeader, const TMessageType& inMessageData) : headerType(inHeader), messageData(inMessageData) {}
 	PacketData(THeaderType inHeader, TMessageType&& inMessageData) : headerType{inHeader}, messageData {std::move(inMessageData)} {}
 };
@@ -33,8 +33,9 @@ public:
 	template <typename THeader, typename TMessage>
 	static ENetPacket* MakeENetPacket(THeader header, TMessage& message);
 
-	template<typename THeader, typename TMessage>
-	static PacketData<THeader, TMessage> GetData(ENetPacket& packet);
+	// get PacketData from ENetPacket. Initializes PacketData message with args before deserialization.
+	template <typename THeader, typename TMessage, typename... TArgs>
+	static PacketData<THeader, TMessage> GetData(ENetPacket& packet, TArgs... args);
 
 	template<typename THeader>
 	static THeader GetHeader(ENetPacket& packet);
@@ -77,14 +78,14 @@ inline ENetPacket* PacketFactory::MakeENetPacket(THeader header, TMessage& messa
 	return enet_packet_create(stream.str().data(), stream.str().size(), ENET_PACKET_FLAG_RELIABLE);
 }
 
-template <typename THeader, typename TMessage>
-inline PacketData<THeader, TMessage> PacketFactory::GetData(ENetPacket& packet)
+template <typename THeader, typename TMessage, typename... TArgs>
+inline PacketData<THeader, TMessage> PacketFactory::GetData(ENetPacket& packet, TArgs... args)
 {
-	PacketData<THeader, TMessage> data;
+	PacketData<THeader, TMessage> data{args...};
 	std::stringstream stream = std::stringstream(std::string(reinterpret_cast<char*>(packet.data), packet.dataLength));
 	{
 		cereal::PortableBinaryInputArchive iarchive(stream);
-		
+
 		iarchive(data);
 	}
 
