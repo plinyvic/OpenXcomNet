@@ -138,6 +138,11 @@ public:
 	int getCursorX() const;
 	/// Gets cursor Y coordinate.
 	int getCursorY() const;
+
+public:
+
+	Game* GetGame();
+
 };
 
 }

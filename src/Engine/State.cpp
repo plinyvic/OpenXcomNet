@@ -668,6 +668,11 @@ int State::getCursorY() const
 	return _game->getCursor()->getY();
 }
 
+Game* State::GetGame()
+{
+	return _game;
+}
+
 void State::setGamePtr(Game* game)
 {
 	_game = game;
