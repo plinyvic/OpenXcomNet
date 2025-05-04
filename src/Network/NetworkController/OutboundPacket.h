@@ -1,7 +1,12 @@
 #pragma once
 
-#include "../../enet/enet.h"
 #include <cstdint>
+
+struct _ENetPeer;
+typedef _ENetPeer ENetPeer;
+
+struct _ENetPacket;
+typedef _ENetPacket ENetPacket;
 
 struct OutboundPacket
 {

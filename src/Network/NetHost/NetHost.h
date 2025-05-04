@@ -1,12 +1,15 @@
 #pragma once
 
-#include "../../enet/enet.h"
 #include <memory>
 #include <queue>
 #include <string>
 #include "../../Network/NetworkController/OutboundPacket.h"
 #include <boost/signals2.hpp>
 #include <map>
+
+#include "../../enet/enet.h"
+#undef min
+#undef max
 
 // Constraints requires a callable type (functor), the return type, and any argument types.
 template <typename TFunction, typename TReturn, typename... TArgs>
@@ -35,37 +38,9 @@ private:
 
 public:
 
-	virtual ~NetHost()
-	{
-		if (host != nullptr)
-		{
-			enet_host_destroy(host);
-		}
-	}
+	virtual ~NetHost();
 
-	void HandleENetEvents()
-	{
-		ENetEvent event;
-		while (enet_host_service(host, &event, 0) > 0)
-		{
-			switch (event.type)
-			{
-			case ENET_EVENT_TYPE_CONNECT:
-			{
-				ConnectEvent connectEvent;
-				HandleConnectEvent(connectEvent);
-				break;
-			}
-			case ENET_EVENT_TYPE_DISCONNECT:
-				HandleDisconnectEvent(event);
-				break;
-
-			case ENET_EVENT_TYPE_RECEIVE:
-				HandleReceiveEvent(event);
-				break;
-			}
-		}
-	}
+	void HandleENetEvents();
 
 	template <typename TCallable>
 	requires CallableWithSignature<TCallable, void, ConnectEvent&>
@@ -83,19 +58,10 @@ public:
 
 protected:
 
-	virtual void HandleConnectEvent(ConnectEvent& event)
-	{
-		connectEventSignal(event);
-	}
+	virtual void HandleConnectEvent(ConnectEvent& event);
 
-	virtual void HandleDisconnectEvent(ENetEvent& event)
-	{
-		disconnectEventSignal(event);
-	}
+	virtual void HandleDisconnectEvent(ENetEvent& event);
 
-	virtual void HandleReceiveEvent(ENetEvent& event)
-	{
-
-	}
+	virtual void HandleReceiveEvent(ENetEvent& event);
 
 };

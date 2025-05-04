@@ -31,7 +31,7 @@ class NetworkController
 	~NetworkController() = default;
 
 	template<typename THeader, typename TData>
-	inline void CreateOutboundPacket(THeader header, TData& data)
+	inline void CreateOutboundPacket(THeader header, const TData& data)
 	{
 		// should really have the host create the packet so they can decide what to do with it
 		// but this is fine for now

@@ -1,9 +1,10 @@
 #pragma once
 #include <cereal/archives/portable_binary.hpp>
 #include "../../Network/NetEvent/NetEventReceive.h"
+#include "../../enet/enet.h"
 #include <sstream>
 
-template <typename THeaderType, typename TMessageType, typename... TMessageInitArgs>
+template <typename THeaderType, typename TMessageType>
 struct PacketData
 {
 	THeaderType headerType;
@@ -15,9 +16,10 @@ struct PacketData
 		archive(headerType, messageData);
 	}
 
-	PacketData(TMessageInitArgs... args) : messageData{args...} {}
+	template<typename... TMessageInitArgs>
+	PacketData(const TMessageInitArgs... args) : messageData{args...} {}
 	PacketData(THeaderType inHeader, const TMessageType& inMessageData) : headerType(inHeader), messageData(inMessageData) {}
-	PacketData(THeaderType inHeader, TMessageType&& inMessageData) : headerType{inHeader}, messageData {std::move(inMessageData)} {}
+	//PacketData(THeaderType inHeader, TMessageType&& inMessageData) : headerType{inHeader}, messageData {std::move(inMessageData)} {}
 };
 
 class PacketFactory

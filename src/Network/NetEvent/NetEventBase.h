@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../../enet/enet.h"
+struct _ENetPeer;
+typedef _ENetPeer ENetPeer;
 
 template<typename TNetHostType>
 class NetEventBase
