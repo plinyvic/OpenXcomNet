@@ -88,6 +88,7 @@
 #include "../Mod/RuleInventory.h"
 #include "../Mod/RuleSoldier.h"
 #include "../Mod/RuleVideo.h"
+#include "Multiplayer/MultiplayerBattlescapeGame.h"
 #include <algorithm>
 
 namespace OpenXcom
@@ -722,8 +723,16 @@ BattlescapeState::BattlescapeState() :
 	_gameTimer = new Timer(DEFAULT_ANIM_SPEED, true);
 	_gameTimer->onTimer((StateHandler)&BattlescapeState::handleState);
 
-	_battleGame = new BattlescapeGame(_save, this);
-
+	if (_game->GetNetworkControllerMutable().isInitialized)
+	{
+		// multiplayer game, use multiplayer battlescape game.
+		_battleGame = new MultiplayerBattlescapeGame(_save, this);
+	}
+	else
+	{
+		// classic singleplayer game
+		_battleGame = new BattlescapeGame(_save, this);
+	}
 	_barHealthColor = _barHealth->getColor();
 }
 
