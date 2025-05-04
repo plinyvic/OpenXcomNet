@@ -1997,7 +1997,9 @@ void BattlescapeGame::primaryAction(Position pos)
 				//  -= start walking =-
 				getMap()->setCursorType(CT_NONE);
 				_parentState->getGame()->getCursor()->setVisible(false);
-				statePushBack(new UnitWalkBState(this, _currentAction));
+				//statePushBack(new UnitWalkBState(this, _currentAction));
+				_currentAction.type = BattleActionType::BA_WALK;
+				PushStateFromActionBack(new UnitWalkBState(this, _currentAction));
 				playUnitResponseSound(_currentAction.actor, 1); // "start moving" sound
 			}
 		}
@@ -3372,6 +3374,21 @@ void BattlescapeGame::autoEndBattle()
 			requestEndTurn(askForConfirmation);
 		}
 	}
+}
+
+void BattlescapeGame::PushStateFromActionFront(BattleState* state)
+{
+	statePushFront(state);
+}
+
+void BattlescapeGame::PushStateFromActionNext(BattleState* state)
+{
+	statePushNext(state);
+}
+
+void BattlescapeGame::PushStateFromActionBack(BattleState* state)
+{
+	statePushBack(state);
 }
 
 }

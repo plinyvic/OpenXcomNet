@@ -132,9 +132,11 @@ struct BattlescapeTally
  */
 class BattlescapeGame
 {
+protected:
+	BattlescapeState* _parentState;
+
 private:
 	SavedBattleGame *_save;
-	BattlescapeState *_parentState;
 	std::list<BattleState*> _states, _deleted;
 	bool _playerPanicHandled;
 	int _AIActionCounter;
@@ -290,6 +292,14 @@ public:
 	bool areAllEnemiesNeutralized() const { return _allEnemiesNeutralized; }
 	/// Resets the flag.
 	void resetAllEnemiesNeutralized() { _allEnemiesNeutralized = false; }
+
+public:
+
+	virtual void PushStateFromActionFront(BattleState* state);
+	virtual void PushStateFromActionNext(BattleState* state);
+	virtual void PushStateFromActionBack(BattleState* state);
+
+
 };
 
 }
