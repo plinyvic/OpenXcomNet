@@ -55,7 +55,7 @@ private:
 	int _preMovementCost;
 public:
 	/// Creates a new UnitWalkBState class.
-	UnitWalkBState(BattlescapeGame *parent, BattleAction _action);
+	UnitWalkBState(BattlescapeGame* parent, const BattleAction& action);
 	/// Cleans up the UnitWalkBState.
 	~UnitWalkBState();
 	/// Initializes the state.
