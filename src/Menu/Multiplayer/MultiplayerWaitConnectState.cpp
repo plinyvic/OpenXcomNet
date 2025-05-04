@@ -30,6 +30,9 @@ MultiplayerWaitConnectState::MultiplayerWaitConnectState(EHostType type, std::st
 		{
 			_game->SetNetworkControllerHost(std::move(std::make_unique<XcomNetClient>(connectString)));
 		}
+
+		// TODO: move to ctor
+		_game->GetNetHost()->SetGame(_game);
 		textWaitForJoin->setText((type == EHostType::Host) ? "Waiting for player..." : "Connecting to server...");
 
 		setInterface("multiplayerWaitConnect");
