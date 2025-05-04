@@ -33,7 +33,7 @@ protected:
 	BattleAction _action;
 public:
 	/// Creates a new BattleState linked to the game.
-	BattleState(BattlescapeGame *parent, BattleAction action);
+	BattleState(BattlescapeGame* parent, const BattleAction& action);
 	/// Creates a new BattleState linked to the game.
 	BattleState(BattlescapeGame *parent);
 	/// Cleans up the BattleState.
