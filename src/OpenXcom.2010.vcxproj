@@ -690,6 +690,8 @@
     <ClCompile Include="Menu\Multiplayer\MultiplayerStartState.cpp" />
     <ClCompile Include="Menu\Multiplayer\MultiplayerNewBattleState.cpp" />
     <ClCompile Include="Menu\Multiplayer\MultiplayerWaitConnectState.cpp" />
+    <ClCompile Include="Battlescape\Multiplayer\MultiplayerBattlescapeGame.cpp" />
+    <ClCompile Include="Battlescape\Multiplayer\MultiplayerBattleAction.cpp" />
     <ClCompile Include="Network\NetEvent\NetEventBase.cpp" />
     <ClCompile Include="Network\NetEvent\NetEventReceive.cpp" />
     <ClCompile Include="Network\NetHost\NetHost.cpp" />
@@ -1159,6 +1161,8 @@
     <ClInclude Include="Menu\Multiplayer\MultiplayerStartState.h" />
     <ClInclude Include="Menu\Multiplayer\MultiplayerNewBattleState.h" />
     <ClInclude Include="Menu\Multiplayer\MultiplayerWaitConnectState.h" />
+    <ClInclude Include="Battlescape\Multiplayer\MultiplayerBattlescapeGame.h" />
+    <ClInclude Include="Battlescape\Multiplayer\MultiplayerBattleAction.h" />
     <ClInclude Include="Network\NetEvent\NetEventBase.h" />
     <ClInclude Include="Network\NetEvent\NetEventReceive.h" />
     <ClInclude Include="Network\NetHost\NetHost.h" />

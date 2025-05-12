@@ -2,6 +2,10 @@
 
 #include "../../enet/enet.h"
 
+#ifdef _DEBUG
+#include <limits>
+#endif
+
 NetHost::~NetHost()
 {
 	if (host != nullptr)
@@ -19,7 +23,7 @@ void NetHost::HandleENetEvents()
 		{
 		case ENET_EVENT_TYPE_CONNECT:
 		{
-			ConnectEvent connectEvent;
+			ConnectEvent connectEvent{event.peer};
 			HandleConnectEvent(connectEvent);
 			break;
 		}
@@ -36,6 +40,11 @@ void NetHost::HandleENetEvents()
 
 void NetHost::HandleConnectEvent(ConnectEvent& event)
 {
+	#ifdef _DEBUG
+	// disable timeout if a debug build. debugger breaks will cause timeout.
+	enet_peer_timeout(event.peer, std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max(), std::numeric_limits<uint32_t>::max());
+	// ok, doesnt disable it, but makes it really far into the future.
+	#endif
 	connectEventSignal(event);
 }
 

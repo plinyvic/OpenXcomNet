@@ -1248,6 +1248,8 @@
     <ClCompile Include="enet\unix.c" />
     <ClCompile Include="enet\win32.c" />
     <ClCompile Include="Network\NetHost\XcomNetHost.cpp" />
+    <ClCompile Include="Battlescape\Multiplayer\MultiplayerBattlescapeGame.cpp" />
+    <ClCompile Include="Battlescape\Multiplayer\MultiplayerBattleAction.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2753,6 +2755,8 @@
     <ClInclude Include="enet\utility.h" />
     <ClInclude Include="enet\win32.h" />
     <ClInclude Include="Network\NetHost\XcomNetHost.h" />
+    <ClInclude Include="Battlescape\Multiplayer\MultiplayerBattlescapeGame.h" />
+    <ClInclude Include="Battlescape\Multiplayer\MultiplayerBattleAction.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Geoscape">

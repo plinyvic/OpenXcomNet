@@ -18,7 +18,7 @@ concept CallableWithSignature = std::invocable<TFunction, TArgs...> &&
 
 struct ConnectEvent
 {
-	// reserved
+	ENetPeer* peer;
 };
 
 class NetHost
