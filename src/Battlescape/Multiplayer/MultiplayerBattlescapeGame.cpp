@@ -22,6 +22,8 @@ OpenXcom::BattleState* MultiplayerBattlescapeGame::MakeBattleState(MultiplayerBa
 {
 	// set rng seed so that actions have parity on all clients.
 	RNG::setSeed(battleAction.rngSeed);
+	// set selected actor
+	getSave()->setSelectedUnit(battleAction.actor);
 	OpenXcom::BattleState* state = nullptr;
 	switch (battleAction.type)
 	{
