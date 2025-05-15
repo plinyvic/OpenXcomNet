@@ -10,7 +10,8 @@ enum class EXcomNetEventType : uint8_t
 	ReceiveStartMatch,
 	PushBattleActionFront,
 	PushBattleActionNext,
-	PushBattleActionBack
+	PushBattleActionBack,
+	FlushBattleActions
 };
 
 namespace OpenXcom
@@ -19,7 +20,7 @@ namespace OpenXcom
 	class Game;
 }
 
-struct MultiplayerBattleAction;
+struct MultiplayerBattleActionVector;
 
 class XcomNetHost : public NetHost
 {
@@ -41,13 +42,7 @@ private:
 	boost::signals2::signal<void()>	receiveClientReadySignal;
 	boost::signals2::signal<void()> receiveStartMatchSignal;
 
-	boost::signals2::signal<void(MultiplayerBattleAction&)> receivePushBattleActionFrontSignal;
-	boost::signals2::signal<void(MultiplayerBattleAction&)> receivePushBattleActionNextSignal;
-	boost::signals2::signal<void(MultiplayerBattleAction&)> receivePushBattleActionBack;
-
-private:
-
-	OpenXcom::BattleState* MakeBattleState(MultiplayerBattleAction& battleAction); 
+	boost::signals2::signal<void(MultiplayerBattleActionVector&)> receiveFlushBattleActions;
 
 public:
 
@@ -75,24 +70,10 @@ public:
 	}
 
 	template <typename TCallable>
-	requires CallableWithSignature<TCallable, void, MultiplayerBattleAction&>
-	inline boost::signals2::connection BindToReceivePushBattleActionFrontEvent(TCallable&& function)
+	requires CallableWithSignature<TCallable, void, MultiplayerBattleActionVector&>
+	inline boost::signals2::connection BindToReceiveFlushBattleActionsEvent(TCallable&& function)
 	{
-		return receivePushBattleActionFrontSignal.connect(std::forward<TCallable>(function));
-	}
-
-	template <typename TCallable>
-	requires CallableWithSignature<TCallable, void, MultiplayerBattleAction&>
-	inline boost::signals2::connection BindToReceivePushBattleActionNextEvent(TCallable&& function)
-	{
-		return receivePushBattleActionNextSignal.connect(std::forward<TCallable>(function));
-	}
-
-	template <typename TCallable>
-	requires CallableWithSignature<TCallable, void, MultiplayerBattleAction&>
-	inline boost::signals2::connection BindToReceivePushBattleActionBackEvent(TCallable&& function)
-	{
-		return receivePushBattleActionBack.connect(std::forward<TCallable>(function));
+		return receiveFlushBattleActions.connect(std::forward<TCallable>(function));
 	}
 
 };

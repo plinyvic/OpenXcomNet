@@ -1782,8 +1782,11 @@ void BattlescapeGame::primaryAction(Position pos)
 				getMap()->getWaypoints()->clear();
 				_parentState->getGame()->getCursor()->setVisible(false);
 				_currentAction.cameraPosition = getMap()->getCamera()->getMapOffset();
-				_states.push_back(new ProjectileFlyBState(this, _currentAction));
-				statePushFront(new UnitTurnBState(this, _currentAction));
+				//_states.push_back(new ProjectileFlyBState(this, _currentAction));
+				//statePushFront(new UnitTurnBState(this, _currentAction));
+				PushStateFromActionBack(new ProjectileFlyBState(this, _currentAction), true);
+				_currentAction.type = BattleActionType::BA_TURN;
+				PushStateFromActionFront(new UnitTurnBState(this, _currentAction));
 				_currentAction.sprayTargeting = false;
 				_currentAction.waypoints.clear();
 			}
@@ -1884,7 +1887,8 @@ void BattlescapeGame::primaryAction(Position pos)
 						getMap()->setCursorType(CT_NONE);
 						_parentState->getGame()->getCursor()->setVisible(false);
 						_currentAction.cameraPosition = getMap()->getCamera()->getMapOffset();
-						statePushBack(new PsiAttackBState(this, _currentAction));
+						PushStateFromActionBack(new PsiAttackBState(this, _currentAction));
+						//statePushBack(new PsiAttackBState(this, _currentAction));
 					}
 					else
 					{
@@ -1917,8 +1921,14 @@ void BattlescapeGame::primaryAction(Position pos)
 
 			_parentState->getGame()->getCursor()->setVisible(false);
 			_currentAction.cameraPosition = getMap()->getCamera()->getMapOffset();
-			_states.push_back(new ProjectileFlyBState(this, _currentAction));
-			statePushFront(new UnitTurnBState(this, _currentAction)); // first of all turn towards the target
+			//_states.push_back(new ProjectileFlyBState(this, _currentAction));
+			//statePushFront(new UnitTurnBState(this, _currentAction)); // first of all turn towards the target
+			//BattleActionType cached = _currentAction.type;
+			
+			PushStateFromActionBack(new ProjectileFlyBState(this, _currentAction), true);
+			//_currentAction.type = cached;
+			_currentAction.type = BattleActionType::BA_TURN;
+			PushStateFromActionFront(new UnitTurnBState(this, _currentAction));
 		}
 	}
 	else
@@ -1997,9 +2007,8 @@ void BattlescapeGame::primaryAction(Position pos)
 				//  -= start walking =-
 				getMap()->setCursorType(CT_NONE);
 				_parentState->getGame()->getCursor()->setVisible(false);
-				//statePushBack(new UnitWalkBState(this, _currentAction));
 				_currentAction.type = BattleActionType::BA_WALK;
-				PushStateFromActionBack(new UnitWalkBState(this, _currentAction));
+				PushStateFromActionBack(new UnitWalkBState(this, _currentAction), false);
 				playUnitResponseSound(_currentAction.actor, 1); // "start moving" sound
 			}
 		}
@@ -2016,7 +2025,9 @@ void BattlescapeGame::secondaryAction(Position pos)
 	_currentAction.target = pos;
 	_currentAction.actor = _save->getSelectedUnit();
 	_currentAction.strafe = Options::strafe && _save->isCtrlPressed(true) && _save->getSelectedUnit()->getTurretType() > -1;
-	statePushBack(new UnitTurnBState(this, _currentAction));
+	_currentAction.type = BattleActionType::BA_TURN;
+	PushStateFromActionBack(new UnitTurnBState(this, _currentAction), false);
+	//statePushBack(new UnitTurnBState(this, _currentAction));
 }
 
 /**
@@ -3376,19 +3387,55 @@ void BattlescapeGame::autoEndBattle()
 	}
 }
 
-void BattlescapeGame::PushStateFromActionFront(BattleState* state)
+void OpenXcom::BattlescapeGame::PushStateFromActionFront(BattleState* state)
 {
 	statePushFront(state);
 }
 
-void BattlescapeGame::PushStateFromActionNext(BattleState* state)
+void OpenXcom::BattlescapeGame::PushStateFromActionNext(BattleState* state, bool doNotInit)
 {
-	statePushNext(state);
+	//statePushNext(state);
+
+	if (_states.empty())
+	{
+		_states.push_front(state);
+		if (!doNotInit)
+		{
+			state->init();
+		}
+	}
+	else
+	{
+		_states.insert(++_states.begin(), state);
+	}
 }
 
-void BattlescapeGame::PushStateFromActionBack(BattleState* state)
+void OpenXcom::BattlescapeGame::PushStateFromActionBack(BattleState* state, bool doNotInit)
 {
-	statePushBack(state);
+	//statePushBack(state);
+
+	if (_states.empty())
+	{
+		_states.push_front(state);
+		// end turn request?
+		if (_states.front() == 0)
+		{
+			_states.pop_front();
+			endTurn();
+			return;
+		}
+		else
+		{
+			if (!doNotInit)
+			{
+				state->init();
+			}
+		}
+	}
+	else
+	{
+		_states.push_back(state);
+	}
 }
 
 }

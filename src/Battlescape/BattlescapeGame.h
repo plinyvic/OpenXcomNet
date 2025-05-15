@@ -134,10 +134,11 @@ class BattlescapeGame
 {
 protected:
 	BattlescapeState* _parentState;
+	std::list<BattleState*> _states;
 
 private:
 	SavedBattleGame *_save;
-	std::list<BattleState*> _states, _deleted;
+	std::list<BattleState*> _deleted;
 	bool _playerPanicHandled;
 	int _AIActionCounter;
 	BattleAction _currentAction;
@@ -149,8 +150,10 @@ private:
 	helper::SingleRun _endTurnProcessed;
 	helper::SingleRun _triggerProcessed;
 
+	protected:
 	/// Ends the turn.
 	void endTurn();
+	private:
 	/// Picks the first soldier that is panicking.
 	bool handlePanickingPlayer();
 	/// Common function for handling panicking units.
@@ -221,9 +224,9 @@ public:
 	/// Determines whether there is an action currently going on.
 	bool isBusy() const;
 	/// Activates primary action (left click).
-	void primaryAction(Position pos);
+	virtual void primaryAction(Position pos);
 	/// Activates secondary action (right click).
-	void secondaryAction(Position pos);
+	virtual void secondaryAction(Position pos);
 	/// Handler for the blaster launcher button.
 	void launchAction();
 	/// Handler for the psi button.
@@ -296,8 +299,8 @@ public:
 public:
 
 	virtual void PushStateFromActionFront(BattleState* state);
-	virtual void PushStateFromActionNext(BattleState* state);
-	virtual void PushStateFromActionBack(BattleState* state);
+	virtual void PushStateFromActionNext(BattleState* state, bool doNotInit = false);
+	virtual void PushStateFromActionBack(BattleState* state, bool doNotInit = false);
 
 
 };

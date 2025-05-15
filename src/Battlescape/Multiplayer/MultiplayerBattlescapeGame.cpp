@@ -3,79 +3,147 @@
 #include "../BattlescapeState.h"
 #include "../BattleState.h"
 #include "../../Engine/Game.h"
-#include "MultiplayerBattleAction.h"
 #include "../../Battlescape/UnitWalkBState.h"
+#include "../../Battlescape/ProjectileFlyBState.h"
+#include "../../Battlescape/UnitTurnBState.h"
 #include "../../Battlescape/Pathfinding.h"
+#include "../../Battlescape/PsiAttackBState.h"
 
 MultiplayerBattlescapeGame::MultiplayerBattlescapeGame(SavedBattleGame* save, BattlescapeState* parentState) : BattlescapeGame(save, parentState)
 {
-	// bind to events
-	onReceivePushStateFromActionFrontConnection = _parentState->getGame()->GetNetHost()->BindToReceivePushBattleActionFrontEvent([this](MultiplayerBattleAction& mpba)
-																																 {OnReceivePushStateFromActionFront(mpba);});
-	onReceivePushStateFromActionNextConnection = _parentState->getGame()->GetNetHost()->BindToReceivePushBattleActionNextEvent([this](MultiplayerBattleAction& mpba)
-																																{OnReceivePushStateFromActionNext(mpba);});
-	onReceivePushStateFromActionBackConnection = _parentState->getGame()->GetNetHost()->BindToReceivePushBattleActionBackEvent([this](MultiplayerBattleAction& mpba)
-																																{OnReceivePushStateFromActionBack(mpba);});
+	onReceiveFlushBattleActionsConnection = _parentState->getGame()->GetNetHost()->BindToReceiveFlushBattleActionsEvent([this](MultiplayerBattleActionVector& mpbas)
+																														{OnReceiveFlushBattleActions(mpbas);});
 }
 
-OpenXcom::BattleState* MultiplayerBattlescapeGame::MakeBattleState(MultiplayerBattleAction& battleAction)
+OpenXcom::BattleState* MultiplayerBattlescapeGame::MakeBattleState(MultiplayerBattleAction& multiplayerBattleAction)
 {
-	// set rng seed so that actions have parity on all clients.
-	RNG::setSeed(battleAction.rngSeed);
-	// set selected actor
-	getSave()->setSelectedUnit(battleAction.actor);
 	OpenXcom::BattleState* state = nullptr;
+	OpenXcom::BattleAction battleAction = multiplayerBattleAction.MakeBattleAction(_parentState->getGame());
 	switch (battleAction.type)
 	{
 	case OpenXcom::BattleActionType::BA_WALK:
 		state = new OpenXcom::UnitWalkBState(this, battleAction);
 		getSave()->getPathfinding()->calculate(battleAction.actor, battleAction.target, BAM_NORMAL);
 		break;
+	case OpenXcom::BattleActionType::BA_TURN:
+		state = new OpenXcom::UnitTurnBState(this, battleAction);
+		break;
+	case OpenXcom::BattleActionType::BA_SNAPSHOT:
+	case OpenXcom::BattleActionType::BA_AUTOSHOT:
+	case OpenXcom::BattleActionType::BA_AIMEDSHOT:
+	case OpenXcom::BattleActionType::BA_THROW:
+		state = new OpenXcom::ProjectileFlyBState(this, battleAction);
+		break;
+	case OpenXcom::BattleActionType::BA_PANIC:
+	case OpenXcom::BattleActionType::BA_MINDCONTROL:
+	case OpenXcom::BattleActionType::BA_USE:
+		state = new OpenXcom::PsiAttackBState(this, battleAction);
+		break;
 	default:
 		break;
 	}
-
 	return state;
 }
 
-void MultiplayerBattlescapeGame::OnReceivePushStateFromActionFront(MultiplayerBattleAction& mpba)
+void MultiplayerBattlescapeGame::OnReceiveFlushBattleActions(MultiplayerBattleActionVector& mpbActions)
 {
-	statePushFront(MakeBattleState(mpba));
+	// clear any current states (there shouldnt be any)
+	_states.clear();
+	outboundActions.clear();
+	RNG::setSeed(mpbActions.rngSeed);
+	// add states in order
+	for(auto mpba : mpbActions.orderedActions)
+	{
+		_states.push_back(MakeBattleState(mpba));
+	}
+	if (!_states.empty())
+	{
+		getSave()->setSelectedUnit(_states.front()->getAction().actor);
+		_states.front()->init();
+	}
+
+	// init back?
 }
 
-void MultiplayerBattlescapeGame::OnReceivePushStateFromActionNext(MultiplayerBattleAction& mpba)
+void MultiplayerBattlescapeGame::FlushBattleActions()
 {
-	statePushNext(MakeBattleState(mpba));
+	if (!outboundActions.empty())
+	{
+		// move list to vector
+		std::vector<MultiplayerBattleAction> actions{std::make_move_iterator(std::begin(outboundActions)), std::make_move_iterator(std::end(outboundActions))};
+
+		// reinitialize list since we moved its contents
+		outboundActions = std::list<MultiplayerBattleAction>();
+
+		MultiplayerBattleActionVector outboundData{std::move(actions), startingSeed};
+		_parentState->getGame()->GetNetworkControllerMutable().CreateOutboundPacket(EXcomNetEventType::FlushBattleActions, outboundData);
+	}
+	// if actions are empty, why would we do anything?
 }
 
-void MultiplayerBattlescapeGame::OnReceivePushStateFromActionBack(MultiplayerBattleAction& mpba)
+void MultiplayerBattlescapeGame::primaryAction(Position pos)
 {
-	statePushBack(MakeBattleState(mpba));
+	BattlescapeGame::primaryAction(pos);
+
+	FlushBattleActions();
+}
+
+void MultiplayerBattlescapeGame::secondaryAction(Position pos)
+{
+	BattlescapeGame::secondaryAction(pos);
+
+	FlushBattleActions();
 }
 
 void MultiplayerBattlescapeGame::PushStateFromActionFront(BattleState* state)
 {
+	if (outboundActions.empty())
+	{
+		startingSeed = RNG::getSeed();
+	}
 	// add to network event queue
-	MultiplayerBattleAction mpba{_parentState->getGame(), RNG::getSeed(), state->getAction()};
-	_parentState->getGame()->GetNetworkControllerMutable().CreateOutboundPacket(EXcomNetEventType::PushBattleActionFront, mpba);
+	MultiplayerBattleAction mpba{state->getAction()};
+	outboundActions.push_front(mpba);
 
 	BattlescapeGame::PushStateFromActionFront(state);
 }
 
-void MultiplayerBattlescapeGame::PushStateFromActionNext(BattleState* state)
+void MultiplayerBattlescapeGame::PushStateFromActionNext(BattleState* state, bool doNotInit)
 {
+	if (outboundActions.empty())
+	{
+		startingSeed = RNG::getSeed();
+	}
 	// add to network event queue
-	MultiplayerBattleAction mpba{_parentState->getGame(), RNG::getSeed(), state->getAction()};
-	_parentState->getGame()->GetNetworkControllerMutable().CreateOutboundPacket(EXcomNetEventType::PushBattleActionNext, mpba);
+	MultiplayerBattleAction mpba{state->getAction()};
+	if (outboundActions.empty())
+	{
+		outboundActions.push_front(mpba);
+	}
+	else
+	{
+		outboundActions.insert(++outboundActions.begin(), mpba);
+	}
 
-	BattlescapeGame::PushStateFromActionNext(state);
+	BattlescapeGame::PushStateFromActionNext(state, doNotInit);
 }
 
-void MultiplayerBattlescapeGame::PushStateFromActionBack(BattleState* state)
+void MultiplayerBattlescapeGame::PushStateFromActionBack(BattleState* state, bool doNotInit)
 {
+	if (outboundActions.empty())
+	{
+		startingSeed = RNG::getSeed();
+	}
 	// add to network event queue
-	MultiplayerBattleAction mpba{_parentState->getGame(), RNG::getSeed(), state->getAction()};
-	_parentState->getGame()->GetNetworkControllerMutable().CreateOutboundPacket(EXcomNetEventType::PushBattleActionBack, mpba);
+	MultiplayerBattleAction mpba{state->getAction()};
+	if (outboundActions.empty())
+	{
+		outboundActions.push_front(mpba);
+	}
+	else
+	{
+		outboundActions.push_back(mpba);
+	}
 
-	BattlescapeGame::PushStateFromActionBack(state);
+	BattlescapeGame::PushStateFromActionBack(state, doNotInit);
 }

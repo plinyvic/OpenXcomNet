@@ -27,22 +27,10 @@ void XcomNetHost::HandleReceiveEvent(ENetEvent& event)
 	case EXcomNetEventType::ReceiveStartMatch:
 		receiveStartMatchSignal();
 		break;
-	case EXcomNetEventType::PushBattleActionFront:
+	case EXcomNetEventType::FlushBattleActions:
 	{
-		MultiplayerBattleAction battleAction = PacketFactory::GetData<EXcomNetEventType, MultiplayerBattleAction>(*event.packet, game).messageData;
-		receivePushBattleActionFrontSignal(battleAction);
-	}
-		break;
-	case EXcomNetEventType::PushBattleActionNext:
-	{
-		MultiplayerBattleAction battleAction = PacketFactory::GetData<EXcomNetEventType, MultiplayerBattleAction>(*event.packet, game).messageData;
-		receivePushBattleActionNextSignal(battleAction);
-	}
-		break;
-	case EXcomNetEventType::PushBattleActionBack:
-	{
-		MultiplayerBattleAction battleAction = PacketFactory::GetData<EXcomNetEventType, MultiplayerBattleAction>(*event.packet, game).messageData;
-		receivePushBattleActionBack(battleAction);
+		MultiplayerBattleActionVector battleActions = PacketFactory::GetData<EXcomNetEventType, MultiplayerBattleActionVector>(*event.packet).messageData;
+		receiveFlushBattleActions(battleActions);
 	}
 		break;
 	case EXcomNetEventType::NET_ERROR:
