@@ -762,6 +762,7 @@
     <ClCompile Include="Network\NetHost\XcomNetClient.cpp" />
     <ClCompile Include="Network\NetHost\XcomNetServer.cpp" />
     <ClCompile Include="Network\NetHost\XcomNetHost.cpp" />
+    <ClCompile Include="Battlescape\UnitKneelState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libs\miniz\miniz.h" />
@@ -1275,6 +1276,7 @@
     <ClInclude Include="Ufopaedia\Ufopaedia.h" />
     <ClInclude Include="Ufopaedia\UfopaediaSelectState.h" />
     <ClInclude Include="Ufopaedia\UfopaediaStartState.h" />
+    <ClInclude Include="Battlescape\UnitKneelState.h" />
     <ClInclude Include="version.h" />
     <ClInclude Include="Network\NetHost\XcomNetClient.h" />
     <ClInclude Include="Network\NetHost\XcomNetServer.h" />

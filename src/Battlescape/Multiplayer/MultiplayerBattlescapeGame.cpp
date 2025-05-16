@@ -8,6 +8,7 @@
 #include "../../Battlescape/UnitTurnBState.h"
 #include "../../Battlescape/Pathfinding.h"
 #include "../../Battlescape/PsiAttackBState.h"
+#include "../UnitKneelState.h"
 
 MultiplayerBattlescapeGame::MultiplayerBattlescapeGame(SavedBattleGame* save, BattlescapeState* parentState) : BattlescapeGame(save, parentState)
 {
@@ -38,6 +39,9 @@ OpenXcom::BattleState* MultiplayerBattlescapeGame::MakeBattleState(MultiplayerBa
 	case OpenXcom::BattleActionType::BA_MINDCONTROL:
 	case OpenXcom::BattleActionType::BA_USE:
 		state = new OpenXcom::PsiAttackBState(this, battleAction);
+		break;
+	case OpenXcom::BattleActionType::BA_KNEEL:
+		state = new OpenXcom::UnitKneelState(this, battleAction);
 		break;
 	default:
 		break;
@@ -94,6 +98,14 @@ void MultiplayerBattlescapeGame::secondaryAction(Position pos)
 
 	FlushBattleActions();
 }
+
+bool MultiplayerBattlescapeGame::KneelAction(OpenXcom::BattleUnit* bu)
+{
+	bool toReturn = kneel(bu);
+	FlushBattleActions();
+	return toReturn;
+}
+
 
 void MultiplayerBattlescapeGame::PushStateFromActionFront(BattleState* state)
 {

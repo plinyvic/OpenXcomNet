@@ -1224,7 +1224,7 @@ void BattlescapeState::btnKneelClick(Action *)
 		BattleUnit *bu = _save->getSelectedUnit();
 		if (bu)
 		{
-			_battleGame->kneel(bu);
+			_battleGame->KneelAction(bu);
 			toggleKneelButton(bu);
 
 			// update any path preview when unit kneels

@@ -30,6 +30,7 @@ public:
 
 	virtual void primaryAction(Position pos) override;
 	virtual void secondaryAction(Position pos) override;
+	virtual bool KneelAction(OpenXcom::BattleUnit* bu);
 
 	virtual void PushStateFromActionFront(OpenXcom::BattleState* state) override;
 	virtual void PushStateFromActionNext(OpenXcom::BattleState* state, bool doNotInit = false) override;

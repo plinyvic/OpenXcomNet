@@ -59,6 +59,7 @@
 #include "../Savegame/BattleUnitStatistics.h"
 #include "ConfirmEndMissionState.h"
 #include "../fmath.h"
+#include "UnitKneelState.h"
 
 namespace OpenXcom
 {
@@ -481,28 +482,11 @@ void BattlescapeGame::handleAI(BattleUnit *unit)
  */
 bool BattlescapeGame::kneel(BattleUnit *bu)
 {
-	int tu = bu->getKneelChangeCost();
-	if (bu->getArmor()->allowsKneeling(bu->getType() == "SOLDIER") && !bu->isFloating() && ((!bu->isKneeled() && _save->getKneelReserved()) || checkReservedTU(bu, tu, 0)))
-	{
-		BattleAction kneel;
-		kneel.type = BA_KNEEL;
-		kneel.actor = bu;
-		kneel.Time = tu;
-		if (kneel.spendTU())
-		{
-			bu->kneel(!bu->isKneeled());
-			// kneeling or standing up can reveal new terrain or units. I guess.
-			getTileEngine()->calculateFOV(bu->getPosition(), 1, false); //Update unit FOV for everyone through this position, skip tiles.
-			_parentState->updateSoldierInfo(); //This also updates the tile FOV of the unit, hence why it's skipped above.
-			getTileEngine()->checkReactionFire(bu, kneel);
-			return true;
-		}
-		else
-		{
-			_parentState->warning("STR_NOT_ENOUGH_TIME_UNITS");
-		}
-	}
-	return false;
+	_currentAction.actor = bu;
+	_currentAction.type = BattleActionType::BA_KNEEL;
+	UnitKneelState* state = new UnitKneelState(this, _currentAction);
+	PushStateFromActionFront(state);
+	return state->GetSuccess();
 }
 
 /**
@@ -3436,6 +3420,11 @@ void OpenXcom::BattlescapeGame::PushStateFromActionBack(BattleState* state, bool
 	{
 		_states.push_back(state);
 	}
+}
+
+bool BattlescapeGame::KneelAction(BattleUnit* bu)
+{
+	return kneel(bu);
 }
 
 }

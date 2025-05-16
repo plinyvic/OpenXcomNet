@@ -1250,6 +1250,7 @@
     <ClCompile Include="Network\NetHost\XcomNetHost.cpp" />
     <ClCompile Include="Battlescape\Multiplayer\MultiplayerBattlescapeGame.cpp" />
     <ClCompile Include="Battlescape\Multiplayer\MultiplayerBattleAction.cpp" />
+    <ClCompile Include="Battlescape\UnitKneelState.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
@@ -2757,6 +2758,7 @@
     <ClInclude Include="Network\NetHost\XcomNetHost.h" />
     <ClInclude Include="Battlescape\Multiplayer\MultiplayerBattlescapeGame.h" />
     <ClInclude Include="Battlescape\Multiplayer\MultiplayerBattleAction.h" />
+    <ClInclude Include="Battlescape\UnitKneelState.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Geoscape">

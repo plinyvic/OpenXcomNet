@@ -214,7 +214,7 @@ public:
 	/// Tally summoned player-controlled VIPs. We may still need to correct this in the Debriefing.
 	void tallySummonedVIPs();
 	/// Handles kneeling action.
-	virtual bool kneel(BattleUnit *bu);
+	bool kneel(BattleUnit *bu);
 	/// Cancels the current action.
 	bool cancelCurrentAction(bool bForce = false);
 	/// Cancels all actions.
@@ -298,9 +298,13 @@ public:
 
 public:
 
+	BattlescapeState* GetParentState() const { return _parentState; }
+
 	virtual void PushStateFromActionFront(BattleState* state);
 	virtual void PushStateFromActionNext(BattleState* state, bool doNotInit = false);
 	virtual void PushStateFromActionBack(BattleState* state, bool doNotInit = false);
+
+	virtual bool KneelAction(BattleUnit* bu);
 
 
 };
