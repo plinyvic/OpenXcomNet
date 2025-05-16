@@ -214,7 +214,7 @@ public:
 	/// Tally summoned player-controlled VIPs. We may still need to correct this in the Debriefing.
 	void tallySummonedVIPs();
 	/// Handles kneeling action.
-	bool kneel(BattleUnit *bu);
+	virtual bool kneel(BattleUnit *bu);
 	/// Cancels the current action.
 	bool cancelCurrentAction(bool bForce = false);
 	/// Cancels all actions.
