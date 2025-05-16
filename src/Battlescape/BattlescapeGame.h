@@ -234,7 +234,7 @@ public:
 	/// Handle psi attack result message.
 	void psiAttackMessage(BattleActionAttack attack, BattleUnit *victim);
 	/// Moves a unit up or down.
-	void moveUpDown(BattleUnit *unit, int dir);
+	virtual void moveUpDown(BattleUnit *unit, int dir);
 	/// Requests the end of the turn (wait for explosions etc to really end the turn).
 	void requestEndTurn(bool askForConfirmation);
 	/// Sets the TU reserved type.

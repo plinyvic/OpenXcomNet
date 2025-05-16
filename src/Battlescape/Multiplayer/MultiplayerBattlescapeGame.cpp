@@ -99,6 +99,12 @@ void MultiplayerBattlescapeGame::secondaryAction(Position pos)
 	FlushBattleActions();
 }
 
+void MultiplayerBattlescapeGame::moveUpDown(BattleUnit* unit, int dir)
+{
+	BattlescapeGame::moveUpDown(unit, dir);
+	FlushBattleActions();
+}
+
 bool MultiplayerBattlescapeGame::KneelAction(OpenXcom::BattleUnit* bu)
 {
 	bool toReturn = kneel(bu);

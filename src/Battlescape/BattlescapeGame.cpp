@@ -2095,6 +2095,7 @@ void BattlescapeGame::psiAttackMessage(BattleActionAttack attack, BattleUnit *vi
 void BattlescapeGame::moveUpDown(BattleUnit *unit, int dir)
 {
 	_currentAction.target = unit->getPosition();
+	_currentAction.type = BattleActionType::BA_WALK;
 	if (dir == Pathfinding::DIR_UP)
 	{
 		_currentAction.target.z++;
@@ -2110,7 +2111,7 @@ void BattlescapeGame::moveUpDown(BattleUnit *unit, int dir)
 		kneel(_save->getSelectedUnit());
 	}
 	_save->getPathfinding()->calculate(_currentAction.actor, _currentAction.target, _currentAction.getMoveType());
-	statePushBack(new UnitWalkBState(this, _currentAction));
+	PushStateFromActionBack(new UnitWalkBState(this, _currentAction));
 }
 
 /**
