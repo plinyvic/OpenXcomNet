@@ -33,6 +33,12 @@ void XcomNetHost::HandleReceiveEvent(ENetEvent& event)
 		receiveFlushBattleActions(battleActions);
 	}
 		break;
+	case EXcomNetEventType::EndTurn:
+	{
+		uint64_t seed = PacketFactory::GetData<EXcomNetEventType, uint64_t>(*event.packet).messageData;
+		receiveEndTurnSignal(seed);
+	}
+		break;
 	case EXcomNetEventType::NET_ERROR:
 		break;
 	default:

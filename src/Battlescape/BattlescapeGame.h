@@ -306,7 +306,7 @@ public:
 
 	virtual bool KneelAction(BattleUnit* bu);
 
-
+	virtual void ActionEndTurn();
 };
 
 }

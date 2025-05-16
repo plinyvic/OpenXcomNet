@@ -11,6 +11,7 @@ class MultiplayerBattlescapeGame : public OpenXcom::BattlescapeGame
 protected:
 
 	boost::signals2::scoped_connection onReceiveFlushBattleActionsConnection;
+	boost::signals2::scoped_connection onReceiveEndTurnConnection;
 
 	uint64_t startingSeed;
 
@@ -23,6 +24,7 @@ public:
 	OpenXcom::BattleState* MakeBattleState(MultiplayerBattleAction& multiplayerBattleAction);
 
 	void OnReceiveFlushBattleActions(MultiplayerBattleActionVector& mpbActions);
+	void OnReceiveEndTurn(uint64_t seed);
 
 	void FlushBattleActions();
 
@@ -36,5 +38,7 @@ public:
 	virtual void PushStateFromActionFront(OpenXcom::BattleState* state) override;
 	virtual void PushStateFromActionNext(OpenXcom::BattleState* state, bool doNotInit = false) override;
 	virtual void PushStateFromActionBack(OpenXcom::BattleState* state, bool doNotInit = false) override;
+
+	virtual void ActionEndTurn() override;
 
 };

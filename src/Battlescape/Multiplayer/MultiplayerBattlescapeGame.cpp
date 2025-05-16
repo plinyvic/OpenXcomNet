@@ -10,10 +10,13 @@
 #include "../../Battlescape/PsiAttackBState.h"
 #include "../UnitKneelState.h"
 
-MultiplayerBattlescapeGame::MultiplayerBattlescapeGame(SavedBattleGame* save, BattlescapeState* parentState) : BattlescapeGame(save, parentState)
+MultiplayerBattlescapeGame::MultiplayerBattlescapeGame(SavedBattleGame* save, BattlescapeState* parentState) : BattlescapeGame(save, parentState), startingSeed{}
 {
 	onReceiveFlushBattleActionsConnection = _parentState->getGame()->GetNetHost()->BindToReceiveFlushBattleActionsEvent([this](MultiplayerBattleActionVector& mpbas)
 																														{OnReceiveFlushBattleActions(mpbas);});
+
+	onReceiveEndTurnConnection = _parentState->getGame()->GetNetHost()->BindToReceiveEndTurnEvent([this](uint64_t seed)
+																								  { OnReceiveEndTurn(seed); });
 }
 
 OpenXcom::BattleState* MultiplayerBattlescapeGame::MakeBattleState(MultiplayerBattleAction& multiplayerBattleAction)
@@ -62,11 +65,17 @@ void MultiplayerBattlescapeGame::OnReceiveFlushBattleActions(MultiplayerBattleAc
 	}
 	if (!_states.empty())
 	{
-		getSave()->setSelectedUnit(_states.front()->getAction().actor);
-		_states.front()->init();
-	}
-
+			getSave()->setSelectedUnit(_states.front()->getAction().actor);
+			_states.front()->init();
+		}
+		
 	// init back?
+}
+
+void MultiplayerBattlescapeGame::OnReceiveEndTurn(uint64_t seed)
+{
+	RNG::setSeed(seed);
+	BattlescapeGame::ActionEndTurn();
 }
 
 void MultiplayerBattlescapeGame::FlushBattleActions()
@@ -165,3 +174,12 @@ void MultiplayerBattlescapeGame::PushStateFromActionBack(BattleState* state, boo
 
 	BattlescapeGame::PushStateFromActionBack(state, doNotInit);
 }
+
+void MultiplayerBattlescapeGame::ActionEndTurn()
+{
+	uint64_t seed = RNG::getSeed();
+	_parentState->getGame()->GetNetworkControllerMutable().CreateOutboundPacket(EXcomNetEventType::EndTurn, seed);
+
+	BattlescapeGame::ActionEndTurn();
+}
+

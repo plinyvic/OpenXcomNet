@@ -11,7 +11,8 @@ enum class EXcomNetEventType : uint8_t
 	PushBattleActionFront,
 	PushBattleActionNext,
 	PushBattleActionBack,
-	FlushBattleActions
+	FlushBattleActions,
+	EndTurn
 };
 
 namespace OpenXcom
@@ -43,6 +44,8 @@ private:
 	boost::signals2::signal<void()> receiveStartMatchSignal;
 
 	boost::signals2::signal<void(MultiplayerBattleActionVector&)> receiveFlushBattleActions;
+	boost::signals2::signal<void(uint64_t)> receiveEndTurnSignal;
+
 
 public:
 
@@ -74,6 +77,13 @@ public:
 	inline boost::signals2::connection BindToReceiveFlushBattleActionsEvent(TCallable&& function)
 	{
 		return receiveFlushBattleActions.connect(std::forward<TCallable>(function));
+	}
+
+	template <typename TCallable>
+	requires CallableWithSignature<TCallable, void, uint64_t>
+	inline boost::signals2::connection BindToReceiveEndTurnEvent(TCallable&& function)
+	{
+		return receiveEndTurnSignal.connect(std::forward<TCallable>(function));
 	}
 
 };

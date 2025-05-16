@@ -2145,7 +2145,7 @@ void BattlescapeGame::requestEndTurn(bool askForConfirmation)
 			if (!_endTurnRequested)
 			{
 				_endTurnRequested = true;
-				statePushBack(0);
+				ActionEndTurn();
 			}
 		}
 	}
@@ -2154,7 +2154,7 @@ void BattlescapeGame::requestEndTurn(bool askForConfirmation)
 		if (!_endTurnRequested)
 		{
 			_endTurnRequested = true;
-			statePushBack(0);
+			ActionEndTurn();
 		}
 	}
 }
@@ -3426,6 +3426,11 @@ void OpenXcom::BattlescapeGame::PushStateFromActionBack(BattleState* state, bool
 bool BattlescapeGame::KneelAction(BattleUnit* bu)
 {
 	return kneel(bu);
+}
+
+void BattlescapeGame::ActionEndTurn()
+{
+	statePushBack(nullptr);
 }
 
 }
